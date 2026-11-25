@@ -1,16 +1,16 @@
-// Warung Kilat — data: topping, resep pesanan, dan pelanggan.
-// Semua nama + hidangan orisinal, hasil pikiran sendiri untuk gerobak ini.
+// Warung Kilat v2 — data: topping, resep pesanan, dan pelanggan.
+// Pelanggan memakai FOTO ASLI (img/face-*.jpg), bukan wajah gambar.
 (function () {
   'use strict';
 
   // Enam topping, masing-masing satu warna + satu kunci keyboard.
   var TOPPINGS = [
-    { id: 'cokelat', name: 'Cokelat', key: '3', color: '#5a3018', dot: '#7a4a28', price: 4000 },
-    { id: 'keju', name: 'Keju', key: '4', color: '#ffcf3d', dot: '#f2b705', price: 5000 },
-    { id: 'kacang', name: 'Kacang', key: '5', color: '#c98f4e', dot: '#a06a2c', price: 4000 },
-    { id: 'pisang', name: 'Pisang', key: '6', color: '#f7ead0', dot: '#d9b96a', price: 4000 },
-    { id: 'susu', name: 'Susu', key: '7', color: '#fff8ea', dot: '#e8dcc0', price: 3000 },
-    { id: 'wijen', name: 'Wijen', key: '8', color: '#e8dcc0', dot: '#b8a888', price: 3000 },
+    { id: 'cokelat', name: 'Cokelat', key: '3', color: '#5a3018', dot: '#7a4a28', price: 4000, img: 'img/topping-cokelat.jpg' },
+    { id: 'keju', name: 'Keju', key: '4', color: '#ffcf3d', dot: '#f2b705', price: 5000, img: 'img/topping-keju.jpg' },
+    { id: 'kacang', name: 'Kacang', key: '5', color: '#c98f4e', dot: '#a06a2c', price: 4000, img: 'img/topping-kacang.jpg' },
+    { id: 'pisang', name: 'Pisang', key: '6', color: '#f7ead0', dot: '#d9b96a', price: 4000, img: 'img/topping-pisang.jpg' },
+    { id: 'susu', name: 'Susu', key: '7', color: '#fff8ea', dot: '#e8dcc0', price: 3000, img: 'img/topping-susu.jpg' },
+    { id: 'wijen', name: 'Wijen', key: '8', color: '#e8dcc0', dot: '#b8a888', price: 3000, img: 'img/topping-wijen.jpg' },
   ];
 
   // Satu martabak = dua topping. Harga dasar 12000 + harga topping.
@@ -36,14 +36,12 @@
     return p;
   }
 
-  // Pelanggan: wajah digambar dari parameter ini (kulit, rambut, baju, aksesori).
+  // Pelanggan: foto asli dari gerobak (strip pelanggan pasar malam).
+  // Urutan HARUS sama dengan file face-*.jpg.
   var CUSTOMERS = [
-    { name: 'Bu Ratna', skin: '#e8b98a', hair: '#3a2a1a', hairStyle: 'bun', shirt: '#2e7d6b', item: 'anting' },
-    { name: 'Pak Dedi', skin: '#c98d5f', hair: '#1a1a1a', hairStyle: 'peci', shirt: '#8a2f23', item: 'peci' },
-    { name: 'Mbak Sari', skin: '#f0c39a', hair: '#241608', hairStyle: 'ponytail', shirt: '#c96a1e', item: 'pita' },
-    { name: 'Mas Budi', skin: '#d9a06a', hair: '#0e0e0e', hairStyle: 'flat', shirt: '#3d5a80', item: 'topi' },
-    { name: 'Nek Minah', skin: '#e0aa7a', hair: '#cfcfcf', hairStyle: 'sanggul', shirt: '#7a4a8a', item: 'kerudung' },
-    { name: 'Dek Rian', skin: '#eec39a', hair: '#2a1a0c', hairStyle: 'spiky', shirt: '#2a9d3f', item: 'headset' },
+    { name: 'Bu Ratna', photo: 'img/face-bu-ratna.jpg' },
+    { name: 'Mbak Sari', photo: 'img/face-mbak-sari.jpg' },
+    { name: 'Pak Dedi', photo: 'img/face-pak-dedi.jpg' },
   ];
 
   window.WK_DATA = {
