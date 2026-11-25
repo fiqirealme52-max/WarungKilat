@@ -1,4 +1,5 @@
-// Warung Kilat v2 — input: tombol DOM + keyboard (mapping sama dengan v1).
+// Warung Kilat — input: tombol DOM + keyboard (mapping sama dengan spek).
+// 1 adonan, 2 mentega, 3-8 topping, F lipat, Spasi potong/saji, B buang, R ulang.
 (function () {
   'use strict';
 

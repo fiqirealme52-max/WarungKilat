@@ -1,4 +1,4 @@
-// Warung Kilat v2 — render DOM di atas FOTO (bukan canvas).
+// Warung Kilat — render DOM di atas FOTO (bukan canvas).
 // Semua scene/makanan/orang adalah foto <img>; yang digambar UI hanya
 // panel, bar, tombol, dan label (HTML/CSS di atas foto).
 (function () {
@@ -90,22 +90,22 @@
     el.btnCut = el.btnCut || $('btn-cut');
     el.btnBin = el.btnBin || $('btn-bin');
 
-    // --- background foto: hero untuk gerobak, griddle close-up saat masak ---
+    // Latar foto: hero untuk gerobak, close-up wajan saat ada adonan.
     var bg = CFG.IMG.hero;
     if (game.shotBg) bg = game.shotBg;
     else if (game.phase === 'playing' && game.griddle.stage !== 'empty') bg = CFG.IMG.griddle;
     if (bg !== curBg) { el.bg.src = bg; curBg = bg; }
 
-    // --- top bar ---
+    // Bar atas.
     el.score.textContent = rupiah(game.score);
     el.subScore.textContent = 'SERVED ' + game.served + ' · LOST ' + game.lost + ' · KOMBO x' + game.combo;
     el.timer.textContent = fmtTime(game.timeLeft);
 
-    // --- tiket ---
+    // Tiket pesanan.
     el.railCount.textContent = game.tickets.length + '/3';
     el.tickets.innerHTML = game.tickets.map(ticketHTML).join('');
 
-    // --- rak topping ---
+    // Rak topping: tandai yang sudah dipakai di wajan.
     var g = game.griddle;
     DATA.TOPPINGS.forEach(function (t) {
       var b = $('jar-' + t.id);
@@ -115,7 +115,7 @@
       b.classList.toggle('wrong', used && g.wrong && g.toppings[g.toppings.length - 1] === t.id);
     });
 
-    // --- label progres wajan ---
+    // Label progres wajan (selalu dari objek wajan, bukan game).
     if (game.phase === 'title') {
       el.label.style.display = 'none';
     } else {
@@ -123,7 +123,7 @@
       el.label.textContent = WORLD.stageLabel(game.griddle);
     }
 
-    // --- piring siap (foto martabak hanya kalau ada isinya) ---
+    // Piring siap: foto martabak hanya kalau ada isinya.
     if (game.plate) {
       el.plateImg.style.display = 'block';
       el.plateImg.src = CFG.IMG.plate;
@@ -142,7 +142,7 @@
       el.ready.classList.remove('full');
     }
 
-    // --- tombol counter ---
+    // Tombol counter: aktif hanya pada langkah yang sah.
     var playing = game.phase === 'playing';
     el.btnBatter.disabled = !playing || g.stage !== 'empty';
     el.btnButter.disabled = !playing || g.stage !== 'needs-butter';
@@ -150,7 +150,7 @@
     el.btnCut.disabled = !playing || g.stage !== 'folded';
     el.btnBin.disabled = !playing || g.stage === 'empty';
 
-    // --- hint ---
+    // Hint.
     if (playing && game.hintLife > 0 && game.hint) {
       el.hint.style.display = 'block';
       el.hint.textContent = game.hint;
@@ -158,13 +158,13 @@
       el.hint.style.display = 'none';
     }
 
-    // --- popup +Rp ---
+    // Popup +Rp.
     el.popups.innerHTML = game.popups.map(function (p) {
       var o = Math.max(0, Math.min(1, p.life));
       return '<div class="popup" style="opacity:' + o + '">' + esc(p.text) + '</div>';
     }).join('');
 
-    // --- overlay title / game over / flash ---
+    // Overlay judul / akhir shift / kilat.
     el.title.style.display = game.phase === 'title' ? 'flex' : 'none';
     if (game.phase === 'over') {
       el.over.style.display = 'flex';

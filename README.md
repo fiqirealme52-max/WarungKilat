@@ -1,4 +1,8 @@
-# Warung Kilat — Martabak Gerobak (v2 fotorealistis)
+# Warung Kilat — Martabak Gerobak (rebuild fotorealistis)
+
+[![Best Cooking Game](https://make.fun/badge/best-cooking-game-20261125-0137.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
+[![Rank](https://make.fun/badge/best-cooking-game-20261125-0137/fiqirealme52-max/WarungKilat/rank.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
+[![Reward](https://make.fun/badge/best-cooking-game-20261125-0137/fiqirealme52-max/WarungKilat/reward.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
 
 Game masak: kelola gerobak martabak di pasar malam selama satu shift 3 menit.
 Semua scene, makanan, dan pelanggan memakai **foto asli** (bukan gambar
@@ -39,7 +43,7 @@ Mouse: klik tombol dan mangkuk topping. Keyboard: 1–8, F, Spasi, B, R
   (makefun/dossier/v1, 4 gambar); tanpa referensi network; game ≤1 MB.
 - Dibaca dengan mata sendiri: keempat shot kelihatan foto — vendor,
   martabak, topping, dan wajah pelanggan semuanya foto asli; 0% ruang
-  mati; tidak ada label kosong di screenshot mana pun.
+  mati; semua label di screenshot menampilkan progres yang benar.
 
 ## Lisensi
 

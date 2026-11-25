@@ -40,7 +40,8 @@
     };
   }
 
-  // --- langkah rakitan yang sudah selesai (untuk label MID-ASSEMBLY n/5) ---
+  // Langkah rakitan yang sudah selesai (untuk label MID-ASSEMBLY n/5).
+  // Parameternya objek wajan, bukan game — pemanggil harus kirim game.griddle.
   function assemblyStep(g) {
     if (g.stage === 'empty') return 0;
     if (g.stage === 'cooking') return 1;
@@ -62,7 +63,7 @@
     }
   }
 
-  // --- order -----------------------------------------------------------------
+  // --- pesanan ---------------------------------------------------------------
   function spawnTicket(game) {
     if (game.tickets.length >= 3) return;
     var recipe = RNG.pick(game.rng, DATA.RECIPES);
@@ -83,8 +84,7 @@
 
   function sameSet(a, b) {
     if (a.length !== b.length) return false;
-    var s = a.slice().sort().join('|');
-    return s === b.slice().sort().join('|');
+    return a.slice().sort().join('|') === b.slice().sort().join('|');
   }
 
   function findMatchingTicket(game, toppings) {
@@ -232,7 +232,7 @@
       g.fold += dt / CFG.FOLD_SECONDS;
       if (g.fold >= 1) { g.stage = 'folded'; setHint(game, 'Potong & sajikan (Spasi)'); }
     }
-    // spawn order
+    // spawn pesanan
     game.spawnIn -= dt;
     if (game.spawnIn <= 0) {
       spawnTicket(game);
@@ -256,11 +256,21 @@
   }
 
   window.WK_WORLD = {
-    newGame: newGame, newGriddle: newGriddle,
-    assemblyStep: assemblyStep, stageLabel: stageLabel,
-    spawnTicket: spawnTicket, sameSet: sameSet,
-    pourBatter: pourBatter, addButter: addButter, addTopping: addTopping,
-    fold: fold, cutAndPlate: cutAndPlate, serve: serve, discard: discard,
-    startGame: startGame, tick: tick, STEPS_TOTAL: STEPS_TOTAL,
+    newGame: newGame,
+    newGriddle: newGriddle,
+    assemblyStep: assemblyStep,
+    stageLabel: stageLabel,
+    spawnTicket: spawnTicket,
+    sameSet: sameSet,
+    pourBatter: pourBatter,
+    addButter: addButter,
+    addTopping: addTopping,
+    fold: fold,
+    cutAndPlate: cutAndPlate,
+    serve: serve,
+    discard: discard,
+    startGame: startGame,
+    tick: tick,
+    STEPS_TOTAL: STEPS_TOTAL,
   };
 })();

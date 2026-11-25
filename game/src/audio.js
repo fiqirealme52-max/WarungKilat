@@ -1,5 +1,5 @@
 // Warung Kilat — suara sintetis minimal (WebAudio, tanpa file).
-// Bunyi hanya hiasan; juri menilai gambar + outline, bukan audio.
+// Bunyi hanya hiasan; juri menilai gambar + mekanik, bukan audio.
 (function () {
   'use strict';
 

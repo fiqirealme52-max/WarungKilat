@@ -14,7 +14,7 @@
   #scrim { position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(to bottom, rgba(10,5,2,.72) 0, rgba(10,5,2,0) 22%, rgba(10,5,2,0) 72%, rgba(10,5,2,.78) 100%); }
 
-  /* --- top bar --- */
+  /* --- bar atas --- */
   #topbar { position: absolute; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: stretch; gap: 8px; padding: 8px; }
   #score-box, #timer-box { background: rgba(20,10,5,.85); border: 1px solid #e8b64c; border-radius: 10px; padding: 4px 14px; display: flex; flex-direction: column; justify-content: center; }
   #score-box { width: 300px; }
@@ -25,7 +25,7 @@
   #sign b { display: block; font-size: 26px; letter-spacing: 4px; color: #ffd23d; line-height: 1; font-family: Georgia, 'Times New Roman', serif; }
   #sign span { font-size: 11px; letter-spacing: 3px; color: #f6ead0; }
 
-  /* --- ticket row (atas) --- */
+  /* --- baris tiket (atas) --- */
   #ticket-row { position: absolute; top: 72px; left: 8px; right: 8px; height: 118px; }
   #ticket-row h3 { margin: 0 0 4px 2px; font-size: 13px; letter-spacing: 2px; color: #ffd23d; text-shadow: 0 1px 3px #000; }
   #tickets { display: flex; gap: 12px; }
@@ -71,7 +71,7 @@
   #ready-status { font-size: 14px; font-weight: 800; color: #7ddb8a; }
   #bell { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #e8b64c; background: radial-gradient(circle at 35% 30%, #ffe9a8, #e8b64c 60%, #a87818); color: #2b1a0e; font-weight: 900; font-size: 13px; cursor: pointer; flex: none; }
 
-  /* --- counter bawah --- */
+  /* --- tombol counter (bawah) --- */
   #counter { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 48px; display: flex; gap: 8px; }
   #counter button { flex: 1; background: rgba(20,10,5,.85); border: 1px solid #e8b64c; color: #ffd23d; border-radius: 10px; font-size: 16px; font-weight: 800; letter-spacing: 1px; cursor: pointer; }
   #counter button b { font-size: 11px; background: #e8b64c; color: #2b1a0e; border-radius: 8px; padding: 1px 7px; margin-left: 6px; }
@@ -81,7 +81,7 @@
   #popups { position: absolute; right: 330px; top: 500px; pointer-events: none; }
   .popup { font-size: 26px; font-weight: 900; color: #ffd23d; text-shadow: 0 2px 6px #000; }
 
-  /* --- overlay --- */
+  /* --- overlay judul / akhir --- */
   #title-overlay { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,5,2,.55); text-align: center; z-index: 5; }
   #title-overlay h1 { font-size: 92px; margin: 0; color: #ffd23d; letter-spacing: 6px; text-shadow: 0 4px 24px #000; font-family: Georgia, 'Times New Roman', serif; }
   #title-overlay h2 { font-size: 30px; margin: 0 0 18px; letter-spacing: 8px; color: #f6ead0; text-shadow: 0 2px 10px #000; }

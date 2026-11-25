@@ -1,4 +1,4 @@
-// Warung Kilat v2 — boot + loop utama (render DOM).
+// Warung Kilat — boot + loop utama (render DOM).
 // ?shot=... render sekali dengan state tetap (deterministik untuk screenshot);
 // ?selftest=1 jalankan tes mekanik; tanpa itu loop rAF biasa.
 (function () {

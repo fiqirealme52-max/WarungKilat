@@ -1,5 +1,5 @@
 // Warung Kilat — RNG ber-seed (mulberry32) + helper acak.
-// Dipakai shot deterministik dan spawn order, supaya screenshot bisa diulang.
+// Seed membuat spawn pesanan dan screenshot bisa diulang persis.
 (function () {
   'use strict';
 
@@ -13,7 +13,9 @@
     };
   }
 
-  function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+  function pick(rng, arr) {
+    return arr[Math.floor(rng() * arr.length)];
+  }
 
   function shuffle(rng, arr) {
     var a = arr.slice();

@@ -47,7 +47,7 @@
       g.hintLife = 0;
       return g;
     },
-    // Start: title di atas gerobak, adonan baru dituang, 3 tiket menunggu.
+    // Start: judul di atas gerobak, adonan baru dituang, 3 tiket menunggu.
     start: function () {
       var g = WORLD.newGame(12);
       g.phase = 'title';
@@ -62,7 +62,7 @@
       g.hintLife = 0;
       return g;
     },
-    // Cook: adonan 82% keemasan, gelembung, api menyala, 2 tiket.
+    // Cook: adonan 82% keemasan di wajan close-up, 3 tiket antre.
     cook: function () {
       var g = baseGame(13);
       g.timeLeft = 135; g.elapsed = 45;
@@ -78,8 +78,8 @@
       g.hintLife = 99;
       return g;
     },
-    // Serve: piring siap penuh + bel berbunyi + popup Rp, martabak berikut
-    // sudah dimasak di wajan, tiket pertama cocok dengan piring.
+    // Serve: piring siap penuh + popup Rp, martabak berikut sudah di wajan,
+    // tiket pertama cocok dengan isi piring.
     serve: function () {
       var g = baseGame(14);
       g.timeLeft = 58; g.elapsed = 122;
@@ -92,7 +92,7 @@
       g.griddle.stage = 'cooking';
       g.griddle.cook = 0.4;
       g.plate = { toppings: ['pisang', 'susu'] };
-      g.flash = 0; // tanpa haze putih di screenshot (popup +Rp sudah cukup)
+      g.flash = 0; // tanpa kabut putih di screenshot (popup +Rp sudah cukup)
       g.popups = [{ text: '+Rp 18.000', x: 860, y: 555, color: '#ffd23d', life: 1.2 }];
       g.hint = '';
       g.hintLife = 0;
@@ -100,7 +100,7 @@
     },
   };
 
-  // Self-test: mainkan satu order penuh lewat fungsi aksi yang sama dengan
+  // Self-test: mainkan satu pesanan penuh lewat fungsi aksi yang sama dengan
   // input pemain, lalu tulis hasilnya ke window.__SELFTEST + document.title.
   function selfTest() {
     var log = [];
@@ -139,7 +139,7 @@
     check('skor naik', g.score > scoreBefore);
     check('served 1', g.served === 1);
     check('kombo 1', g.combo === 1);
-    // jalur buang: topping salah -> BIN
+    // Jalur buang: topping salah -> BIN.
     WORLD.pourBatter(g); step(g, 7.5); WORLD.addButter(g); step(g, 1.5);
     var all = DATA.TOPPINGS.map(function (t) { return t.id; });
     var wrongOne = null;
@@ -158,7 +158,7 @@
     } else {
       log.push('SKIP jalur topping salah (semua topping ada di tiket)');
     }
-    // tiket hangus
+    // Tiket hangus.
     var lostBefore = g.lost;
     if (g.tickets.length > 0) {
       g.tickets[0].patience = 0.1;
@@ -166,7 +166,7 @@
       check('tiket hangus dihitung', g.lost === lostBefore + 1);
       check('kombo reset saat hangus', g.combo === 0);
     }
-    // shift selesai
+    // Shift selesai.
     g.timeLeft = 0.1;
     step(g, 0.2);
     check('shift berakhir -> over', g.phase === 'over');

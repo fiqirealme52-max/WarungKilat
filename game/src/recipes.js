@@ -1,9 +1,9 @@
-// Warung Kilat v2 — data: topping, resep pesanan, dan pelanggan.
-// Pelanggan memakai FOTO ASLI (img/face-*.jpg), bukan wajah gambar.
+// Warung Kilat — data: 6 topping, 8 resep pesanan, 3 pelanggan berfoto.
+// Semua wajah pelanggan adalah foto asli (img/face-*.jpg), bukan gambar.
 (function () {
   'use strict';
 
-  // Enam topping, masing-masing satu warna + satu kunci keyboard.
+  // Enam topping, masing-masing satu warna dot + satu tombol keyboard.
   var TOPPINGS = [
     { id: 'cokelat', name: 'Cokelat', key: '3', color: '#5a3018', dot: '#7a4a28', price: 4000, img: 'img/topping-cokelat.jpg' },
     { id: 'keju', name: 'Keju', key: '4', color: '#ffcf3d', dot: '#f2b705', price: 5000, img: 'img/topping-keju.jpg' },
@@ -13,7 +13,7 @@
     { id: 'wijen', name: 'Wijen', key: '8', color: '#e8dcc0', dot: '#b8a888', price: 3000, img: 'img/topping-wijen.jpg' },
   ];
 
-  // Satu martabak = dua topping. Harga dasar 12000 + harga topping.
+  // Satu martabak = dua topping. Harga dasar 12000 + harga kedua topping.
   var RECIPES = [
     { name: 'Cokelat Keju', toppings: ['cokelat', 'keju'] },
     { name: 'Pisang Susu', toppings: ['pisang', 'susu'] },
@@ -26,7 +26,9 @@
   ];
 
   function toppingById(id) {
-    for (var i = 0; i < TOPPINGS.length; i++) if (TOPPINGS[i].id === id) return TOPPINGS[i];
+    for (var i = 0; i < TOPPINGS.length; i++) {
+      if (TOPPINGS[i].id === id) return TOPPINGS[i];
+    }
     return null;
   }
 
@@ -36,8 +38,7 @@
     return p;
   }
 
-  // Pelanggan: foto asli dari gerobak (strip pelanggan pasar malam).
-  // Urutan HARUS sama dengan file face-*.jpg.
+  // Pelanggan pasar malam: nenek batik, gadis pita merah, bapak bertopi.
   var CUSTOMERS = [
     { name: 'Bu Ratna', photo: 'img/face-bu-ratna.jpg' },
     { name: 'Mbak Sari', photo: 'img/face-mbak-sari.jpg' },
@@ -45,7 +46,10 @@
   ];
 
   window.WK_DATA = {
-    TOPPINGS: TOPPINGS, RECIPES: RECIPES, CUSTOMERS: CUSTOMERS,
-    toppingById: toppingById, recipePrice: recipePrice,
+    TOPPINGS: TOPPINGS,
+    RECIPES: RECIPES,
+    CUSTOMERS: CUSTOMERS,
+    toppingById: toppingById,
+    recipePrice: recipePrice,
   };
 })();
