@@ -35,8 +35,8 @@
       g.score = 48000; g.served = 5; g.lost = 0; g.combo = 3; g.bestCombo = 3;
       g.tickets = [
         ticket(g, 0, 0, 14, 55), // Bu Ratna — Cokelat Keju, BURU-BURU
-        ticket(g, 2, 1, 38, 55), // Mbak Sari — Pisang Susu
-        ticket(g, 1, 4, 48, 55), // Pak Dedi — Keju Susu
+        ticket(g, 1, 1, 38, 55), // Mbak Sari — Pisang Susu
+        ticket(g, 2, 4, 48, 55), // Pak Dedi — Keju Susu
       ];
       g.griddle.stage = 'topping';
       g.griddle.cook = 1;
@@ -54,9 +54,9 @@
       g.griddle.stage = 'cooking';
       g.griddle.cook = 0.25;
       g.tickets = [
-        ticket(g, 3, 3, 52, 55),
+        ticket(g, 2, 3, 52, 55),
         ticket(g, 0, 0, 48, 55),
-        ticket(g, 2, 1, 44, 55),
+        ticket(g, 1, 1, 44, 55),
       ];
       g.hint = '';
       g.hintLife = 0;
@@ -68,9 +68,9 @@
       g.timeLeft = 135; g.elapsed = 45;
       g.score = 21000; g.served = 2; g.lost = 0; g.combo = 2; g.bestCombo = 2;
       g.tickets = [
-        ticket(g, 4, 2, 30, 50),
-        ticket(g, 5, 5, 44, 50),
-        ticket(g, 1, 3, 47, 50),
+        ticket(g, 0, 2, 30, 50),
+        ticket(g, 1, 5, 44, 50),
+        ticket(g, 2, 3, 47, 50),
       ];
       g.griddle.stage = 'cooking';
       g.griddle.cook = 0.82;
@@ -85,14 +85,14 @@
       g.timeLeft = 58; g.elapsed = 122;
       g.score = 64000; g.served = 8; g.lost = 1; g.combo = 4; g.bestCombo = 4;
       g.tickets = [
-        ticket(g, 2, 1, 26, 55), // Pisang Susu — cocok dengan piring
+        ticket(g, 1, 1, 26, 55), // Pisang Susu — cocok dengan piring
         ticket(g, 0, 6, 41, 55),
-        ticket(g, 3, 0, 49, 55),
+        ticket(g, 2, 0, 49, 55),
       ];
       g.griddle.stage = 'cooking';
       g.griddle.cook = 0.4;
       g.plate = { toppings: ['pisang', 'susu'] };
-      g.flash = 0.2;
+      g.flash = 0; // tanpa haze putih di screenshot (popup +Rp sudah cukup)
       g.popups = [{ text: '+Rp 18.000', x: 860, y: 555, color: '#ffd23d', life: 1.2 }];
       g.hint = '';
       g.hintLife = 0;
@@ -133,7 +133,7 @@
     step(g, 1);
     check('lipat selesai -> folded', g.griddle.stage === 'folded');
     check('potong ke piring', WORLD.cutAndPlate(g) === true);
-    check('wajan kosong lagi', g.griddle.stage === 'empty');
+    check('wajan bersih lagi', g.griddle.stage === 'empty');
     var scoreBefore = g.score;
     check('sajikan cocok', WORLD.serve(g) === true);
     check('skor naik', g.score > scoreBefore);
@@ -154,7 +154,7 @@
       WORLD.addTopping(g, wrongOne);
       check('topping salah ditandai', g.griddle.wrong === true);
       check('buang ke BIN', WORLD.discard(g) === true);
-      check('wajan kosong setelah buang', g.griddle.stage === 'empty');
+      check('wajan bersih setelah buang', g.griddle.stage === 'empty');
     } else {
       log.push('SKIP jalur topping salah (semua topping ada di tiket)');
     }
