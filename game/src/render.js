@@ -15,6 +15,40 @@ function rr(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// --- realism helpers: gradients + soft shadows ------------------------------
+// Every light effect is deterministic (coordinates + world.elapsed only;
+// no Math.random anywhere), so a staged screenshot renders identically.
+function lg(ctx, x0, y0, x1, y1, stops) {
+  const g = ctx.createLinearGradient(x0, y0, x1, y1);
+  for (const [o, c] of stops) g.addColorStop(o, c);
+  return g;
+}
+function rg(ctx, x, y, r0, r1, stops) {
+  const g = ctx.createRadialGradient(x, y, r0, x, y, r1);
+  for (const [o, c] of stops) g.addColorStop(o, c);
+  return g;
+}
+// Soft contact shadow: a radial-gradient ellipse fading to transparent.
+function softShadow(ctx, x, y, rx, ry, alpha) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(rx, ry);
+  ctx.fillStyle = rg(ctx, 0, 0, 0, 1, [[0, `rgba(0,0,0,${alpha})`], [0.65, `rgba(0,0,0,${alpha * 0.45})`], [1, 'rgba(0,0,0,0)']]);
+  ctx.beginPath();
+  ctx.arc(0, 0, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+// Top gloss on a rounded surface: white light fading down.
+function glossTop(ctx, x, y, w, h, r, alpha) {
+  ctx.save();
+  rr(ctx, x, y, w, h, r);
+  ctx.clip();
+  ctx.fillStyle = lg(ctx, x, y, x, y + h * 0.5, [[0, `rgba(255,255,255,${alpha})`], [1, 'rgba(255,255,255,0)']]);
+  ctx.fillRect(x, y, w, h * 0.5);
+  ctx.restore();
+}
+
 function fmt(n) {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
@@ -46,7 +80,7 @@ export function drawFood(ctx, ingId, x, y, r, state) {
   const alpha = raw ? 0.62 : 1;
   ctx.globalAlpha = alpha;
   if (ingId === 'nasi') {
-    ctx.fillStyle = '#f7f2e2';
+    ctx.fillStyle = rg(ctx, -r * 0.2, -r * 0.3, r * 0.1, r * 1.05, [[0, '#fffdf4'], [0.6, '#f7f2e2'], [1, '#ddcfa4']]);
     ctx.beginPath();
     ctx.ellipse(0, r * 0.15, r, r * 0.72, 0, Math.PI, 0);
     ctx.fill();
@@ -63,18 +97,28 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.fill();
     }
     // Green garnish leaf on top of the mound.
-    ctx.fillStyle = '#58b368';
+    ctx.fillStyle = rg(ctx, r * 0.3, -r * 0.35, 0, r * 0.3, [[0, '#7ccb7f'], [1, '#3d8f47']]);
     ctx.beginPath();
     ctx.ellipse(r * 0.3, -r * 0.35, r * 0.28, r * 0.14, -0.5, 0, Math.PI * 2);
     ctx.fill();
+    // Gloss dot on the mound.
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.25, -r * 0.3, r * 0.22, r * 0.1, -0.4, 0, Math.PI * 2);
+    ctx.fill();
   } else if (ingId === 'ayam') {
-    ctx.fillStyle = '#c47a28';
+    ctx.fillStyle = rg(ctx, -r * 0.15, -r * 0.2, r * 0.1, r, [[0, '#f0b45c'], [0.55, '#d98a2e'], [1, '#9c5a14']]);
     ctx.beginPath();
     ctx.ellipse(0, 0, r * 0.9, r * 0.62, -0.3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#e8a04c';
+    ctx.fillStyle = rg(ctx, -r * 0.1, -r * 0.12, 0, r * 0.65, [[0, '#f7c877'], [1, '#e8a04c']]);
     ctx.beginPath();
     ctx.ellipse(-r * 0.1, -r * 0.12, r * 0.62, r * 0.42, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // Crispy highlight on the top edge.
+    ctx.fillStyle = 'rgba(255,235,190,0.8)';
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.25, -r * 0.38, r * 0.4, r * 0.12, -0.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#f7f2e2';
     ctx.lineWidth = r * 0.22;
@@ -83,7 +127,7 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.lineTo(r * 1.05, r * 0.7);
     ctx.stroke();
   } else if (ingId === 'mie') {
-    ctx.strokeStyle = '#f2c94c';
+    ctx.strokeStyle = lg(ctx, -r * 0.8, -r * 0.5, r * 0.85, r * 0.5, [[0, '#f7d774'], [0.5, '#f2c94c'], [1, '#cf9a2e']]);
     ctx.lineWidth = r * 0.28;
     ctx.lineCap = 'round';
     for (let i = -1; i <= 1; i += 1) {
@@ -93,24 +137,31 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.quadraticCurveTo(r * 0.6, i * r * 0.42 + r * 0.3, r * 0.85, i * r * 0.42);
       ctx.stroke();
     }
+    // Gloss on the top noodle.
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = r * 0.09;
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.6, -r * 0.5);
+    ctx.quadraticCurveTo(-r * 0.2, -r * 0.72, r * 0.3, -r * 0.48);
+    ctx.stroke();
   } else if (ingId === 'telur') {
-    ctx.fillStyle = '#fffdf4';
+    ctx.fillStyle = rg(ctx, -r * 0.15, -r * 0.2, r * 0.1, r, [[0, '#ffffff'], [0.7, '#fffdf4'], [1, '#e9dcc0']]);
     ctx.beginPath();
     ctx.ellipse(0, 0, r * 0.95, r * 0.7, 0.2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#f2b134';
+    ctx.fillStyle = rg(ctx, r * 0.1, -r * 0.05, 0, r * 0.45, [[0, '#ffd34d'], [0.7, '#f2b134'], [1, '#dd841a']]);
     ctx.beginPath();
     ctx.arc(r * 0.1, -r * 0.05, r * 0.42, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#e08a1e';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
     ctx.beginPath();
-    ctx.arc(r * 0.1, -r * 0.05, r * 0.2, 0, Math.PI * 2);
+    ctx.arc(r * 0.02, -r * 0.16, r * 0.1, 0, Math.PI * 2);
     ctx.fill();
   } else if (ingId === 'tahu') {
-    ctx.fillStyle = '#f7e8c8';
     ctx.strokeStyle = '#d9b96a';
     ctx.lineWidth = 2;
     for (const [dx, dy] of [[-0.35, 0.1], [0.35, -0.15]]) {
+      ctx.fillStyle = lg(ctx, dx * r - r * 0.42, dy * r - r * 0.42, dx * r + r * 0.42, dy * r + r * 0.42, [[0, '#fbf0d4'], [1, '#dfc389']]);
       ctx.beginPath();
       ctx.rect(dx * r - r * 0.42, dy * r - r * 0.42, r * 0.84, r * 0.84);
       ctx.fill();
@@ -125,12 +176,15 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.lineTo(dx * r + r * 0.3, dy * r + r * 0.2);
       ctx.stroke();
     }
+    // Top-face light on the front cube.
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(-r * 0.72, -r * 0.28, r * 0.7, r * 0.14);
   } else if (ingId === 'sayur') {
-    ctx.fillStyle = '#58b368';
     for (const [dx, dy, rot] of [[-0.35, 0.1, -0.5], [0.3, 0.15, 0.4], [0, -0.35, 0]]) {
       ctx.save();
       ctx.translate(dx * r, dy * r);
       ctx.rotate(rot);
+      ctx.fillStyle = rg(ctx, 0, -r * 0.2, 0, r * 0.75, [[0, '#8fd493'], [0.6, '#58b368'], [1, '#35853f']]);
       ctx.beginPath();
       ctx.ellipse(0, 0, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -143,7 +197,7 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.lineTo(0, r * 0.6);
     ctx.stroke();
   } else if (ingId === 'cabai') {
-    ctx.strokeStyle = '#e23b3b';
+    ctx.strokeStyle = lg(ctx, -r * 0.7, -r * 0.35, r * 0.75, r * 0.5, [[0, '#ff6b5e'], [0.55, '#e23b3b'], [1, '#a81c1c']]);
     ctx.lineWidth = r * 0.42;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -164,10 +218,10 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.quadraticCurveTo(-r * 0.1, -r * 0.1, r * 0.2, -r * 0.4);
     ctx.stroke();
   } else if (ingId === 'teh') {
-    ctx.fillStyle = '#c98a2e';
+    ctx.fillStyle = lg(ctx, -r * 0.55, -r * 0.6, r * 0.55, r * 0.7, [[0, '#e8b45a'], [0.5, '#c98a2e'], [1, '#96621a']]);
     rr(ctx, -r * 0.55, -r * 0.6, r * 1.1, r * 1.3, r * 0.2);
     ctx.fill();
-    ctx.fillStyle = '#e8b45a';
+    ctx.fillStyle = 'rgba(255,235,190,0.75)';
     rr(ctx, -r * 0.55, -r * 0.6, r * 1.1, r * 0.35, r * 0.2);
     ctx.fill();
     ctx.strokeStyle = '#8a5a2b';
@@ -175,13 +229,13 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     rr(ctx, -r * 0.55, -r * 0.6, r * 1.1, r * 1.3, r * 0.2);
     ctx.stroke();
   } else if (ingId === 'es') {
-    ctx.fillStyle = '#9fd8ff';
     ctx.strokeStyle = '#5aa8dd';
     ctx.lineWidth = 2;
     for (const [dx, dy, rot] of [[-0.3, 0.15, 0.2], [0.32, -0.15, -0.3]]) {
       ctx.save();
       ctx.translate(dx * r, dy * r);
       ctx.rotate(rot);
+      ctx.fillStyle = lg(ctx, -r * 0.42, -r * 0.42, r * 0.42, r * 0.42, [[0, '#dff2ff'], [1, '#7fbfe8']]);
       ctx.beginPath();
       ctx.rect(-r * 0.42, -r * 0.42, r * 0.84, r * 0.84);
       ctx.fill();
@@ -207,7 +261,10 @@ export function drawFood(ctx, ingId, x, y, r, state) {
 }
 
 function drawPlate(ctx, x, y, r) {
-  ctx.fillStyle = '#fdfbf6';
+  // Soft contact shadow under the plate, then a radial-gradient dish:
+  // bright centre, shaded rim, thin highlight on the top edge.
+  softShadow(ctx, x, y + r * 0.12, r * 0.95, r * 0.3, 0.22);
+  ctx.fillStyle = rg(ctx, x, y - r * 0.15, r * 0.1, r, [[0, '#ffffff'], [0.65, '#fdfbf6'], [1, '#e2d9c0']]);
   ctx.beginPath();
   ctx.ellipse(x, y, r, r * 0.78, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -216,49 +273,85 @@ function drawPlate(ctx, x, y, r) {
   ctx.beginPath();
   ctx.ellipse(x, y, r * 0.72, r * 0.55, 0, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(x, y - r * 0.06, r * 0.6, r * 0.42, 0, Math.PI * 1.15, Math.PI * 1.85);
+  ctx.stroke();
 }
 
 // --- background: wall, menu board, floor ---------------------------------
 function drawRoom(ctx, world) {
   const { width, height } = VIEW;
-  ctx.fillStyle = COLORS.wall;
+  // Wall: warm vertical gradient, light falling from above.
+  ctx.fillStyle = lg(ctx, 0, 0, 0, 300, [[0, '#fbeecd'], [0.6, '#f6e3bd'], [1, '#e9c88d']]);
   ctx.fillRect(0, 0, width, 300);
-  // Floor tiles.
+  // Floor: warm base, then checker tiles each lit from the top edge,
+  // grout showing through the gaps, a sun pool from the window, and
+  // diagonal gloss streaks on the polished tiles.
+  ctx.fillStyle = lg(ctx, 0, 300, 0, 720, [[0, '#d99a5c'], [1, '#b97a3e']]);
+  ctx.fillRect(0, 300, width, 420);
   for (let ty = 0; ty < 8; ty += 1) {
     for (let tx = 0; tx < 16; tx += 1) {
-      ctx.fillStyle = (tx + ty) % 2 === 0 ? COLORS.floorA : COLORS.floorB;
-      ctx.fillRect(tx * 80, 300 + ty * 52.5, 80, 52.5);
+      const base = (tx + ty) % 2 === 0 ? ['#eab170', '#cf8a4c'] : ['#df9d59', '#c07f42'];
+      ctx.fillStyle = lg(ctx, tx * 80, 300 + ty * 52.5, tx * 80, 300 + (ty + 1) * 52.5, [[0, base[0]], [1, base[1]]]);
+      ctx.fillRect(tx * 80 + 1, 300 + ty * 52.5 + 1, 78, 50.5);
     }
   }
+  ctx.fillStyle = rg(ctx, 180, 420, 0, 420, [[0, 'rgba(255,236,180,0.20)'], [1, 'rgba(255,236,180,0)']]);
+  ctx.fillRect(0, 300, width, 420);
+  ctx.fillStyle = rg(ctx, 640, 330, 0, 520, [[0, 'rgba(255,220,150,0.12)'], [1, 'rgba(255,220,150,0)']]);
+  ctx.fillRect(0, 300, width, 420);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 300, width, 420);
+  ctx.clip();
+  ctx.fillStyle = 'rgba(255,246,220,0.07)';
+  for (const gx of [300, 620, 940]) {
+    ctx.beginPath();
+    ctx.moveTo(gx, 300);
+    ctx.lineTo(gx + 130, 300);
+    ctx.lineTo(gx + 40, 720);
+    ctx.lineTo(gx - 90, 720);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
   ctx.fillStyle = 'rgba(0,0,0,0.08)';
   ctx.fillRect(0, 296, width, 8);
   // Wall band: subway-tile backsplash behind the counter row, with a
   // teal trim at the bottom — the wall must read as a kitchen, not a
   // flat band. The menu board and window are drawn over it later.
-  ctx.fillStyle = '#d9c49a';
+  ctx.fillStyle = lg(ctx, 0, 152, 0, 196, [[0, '#e8d5a8'], [1, '#c9ad74']]);
   ctx.fillRect(0, 152, width, 44);
   for (let row = 0; row < 2; row += 1) {
     const ty = 154 + row * 21;
     const off = row === 1 ? 23 : 0;
     for (let tx = -1; tx < 29; tx += 1) {
-      ctx.fillStyle = row === 0 ? '#fdf6e3' : '#f3e7c8';
-      ctx.fillRect(tx * 46 + off + 1, ty, 44, 19);
+      const x0 = tx * 46 + off + 1;
+      ctx.fillStyle = lg(ctx, x0, ty, x0, ty + 19, [[0, row === 0 ? '#fffaf0' : '#f8efdb'], [1, row === 0 ? '#f3e7c8' : '#e6d5ae']]);
+      ctx.fillRect(x0, ty, 44, 19);
+      // Bevel: a light line under each tile catches the lamp light.
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.fillRect(x0, ty + 18, 44, 1);
     }
   }
   ctx.fillStyle = '#2e7f7b';
   ctx.fillRect(0, 192, width, 4);
-  ctx.fillStyle = '#3b2a1a';
+  ctx.fillStyle = lg(ctx, 390, 156, 390, 192, [[0, '#5a4230'], [0.5, '#3b2a1a'], [1, '#241608']]);
   rr(ctx, 390, 156, 500, 36, 8);
   ctx.fill();
+  glossTop(ctx, 390, 156, 500, 36, 8, 0.16);
   ctx.fillStyle = '#ffe9b8';
   ctx.font = '700 16px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('MENU • NASI GORENG • MIE AYAM • ES TEH', 640, 175);
-  // Window with sun and frame, left wall.
-  ctx.fillStyle = '#bfe3f2';
+  // Window with a gradient sky, sun and frame, left wall.
+  ctx.fillStyle = lg(ctx, 60, 164, 60, 190, [[0, '#d4f0fc'], [1, '#8fc8e8']]);
   rr(ctx, 60, 164, 150, 26, 6);
   ctx.fill();
+  glossTop(ctx, 60, 164, 150, 26, 6, 0.35);
   ctx.strokeStyle = '#8a5a2b';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -280,34 +373,41 @@ function drawRoom(ctx, world) {
   ctx.moveTo(320, 152);
   ctx.lineTo(320, 162);
   ctx.stroke();
-  ctx.fillStyle = '#3a3a40';
+  ctx.fillStyle = rg(ctx, 315, 172, 0, 18, [[0, '#6a6a72'], [1, '#2e2e33']]);
   ctx.beginPath();
   ctx.arc(320, 177, 15, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#5a5a62';
+  ctx.fillStyle = rg(ctx, 317, 174, 0, 12, [[0, '#8a8a94'], [1, '#4a4a52']]);
   ctx.beginPath();
   ctx.arc(320, 177, 10, 0, Math.PI * 2);
   ctx.fill();
+  // Steel rim light on the pan's top edge.
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(320, 177, 13, Math.PI * 1.15, Math.PI * 1.8);
+  ctx.stroke();
   ctx.strokeStyle = '#6e451f';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(925, 152);
   ctx.lineTo(925, 162);
   ctx.stroke();
-  ctx.fillStyle = '#4a4a52';
+  ctx.fillStyle = rg(ctx, 905, 162, 0, 40, [[0, '#6a6a72'], [1, '#3a3a40']]);
   rr(ctx, 905, 162, 40, 24, 6);
   ctx.fill();
-  ctx.fillStyle = '#6a6a72';
+  ctx.fillStyle = rg(ctx, 905, 162, 0, 40, [[0, '#9a9aa2'], [1, '#5a5a62']]);
   rr(ctx, 905, 162, 40, 8, 6);
   ctx.fill();
   ctx.fillStyle = '#2e2e33';
   ctx.fillRect(923, 158, 4, 6);
   // Wall clock + framed poster, right of the ticket row (tickets end x 932).
-  ctx.fillStyle = '#3b2a1a';
+  softShadow(ctx, 1170, 110, 28, 28, 0.25);
+  ctx.fillStyle = rg(ctx, 1166, 104, 0, 28, [[0, '#5a4230'], [1, '#2a1c0e']]);
   ctx.beginPath();
   ctx.arc(1170, 108, 26, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#fffdf4';
+  ctx.fillStyle = rg(ctx, 1166, 104, 0, 24, [[0, '#ffffff'], [1, '#e6dcc2']]);
   ctx.beginPath();
   ctx.arc(1170, 108, 22, 0, Math.PI * 2);
   ctx.fill();
@@ -323,10 +423,11 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.arc(1170, 108, 2.5, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#8a5a2b';
+  softShadow(ctx, 1023, 110, 68, 38, 0.25);
+  ctx.fillStyle = lg(ctx, 958, 72, 958, 144, [[0, '#a06a35'], [1, '#7a4a22']]);
   rr(ctx, 958, 72, 130, 72, 6);
   ctx.fill();
-  ctx.fillStyle = '#fff3d6';
+  ctx.fillStyle = lg(ctx, 964, 78, 964, 138, [[0, '#fff8e2'], [1, '#f0dfb8']]);
   rr(ctx, 964, 78, 118, 60, 4);
   ctx.fill();
   ctx.fillStyle = '#d94f3d';
@@ -340,13 +441,18 @@ function drawRoom(ctx, world) {
   ctx.fillText('★ ★ ★ ★ ★', 1023, 130);
   // Hanging lamps, kept clear of the menu board (x 390-890).
   for (const lx of [250, 1030]) {
+    // Warm halo pooling on the wall and tiles below the lamp.
+    ctx.fillStyle = rg(ctx, lx, 178, 0, 70, [[0, 'rgba(255,205,90,0.35)'], [1, 'rgba(255,205,90,0)']]);
+    ctx.beginPath();
+    ctx.arc(lx, 178, 70, 0, Math.PI * 2);
+    ctx.fill();
     ctx.strokeStyle = '#6e451f';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(lx, 152);
     ctx.lineTo(lx, 168);
     ctx.stroke();
-    ctx.fillStyle = '#f2b134';
+    ctx.fillStyle = lg(ctx, lx - 14, 168, lx + 14, 182, [[0, '#ffd34d'], [1, '#d98a1e']]);
     ctx.beginPath();
     ctx.moveTo(lx - 14, 168);
     ctx.lineTo(lx + 14, 168);
@@ -358,7 +464,8 @@ function drawRoom(ctx, world) {
   // Rug under the play area, a runner in front of the counters, rice
   // sacks by the crate wall, and a dining corner with two customers —
   // the aisle must read as a lived-in warung, not an empty floor.
-  ctx.fillStyle = '#b4503a';
+  softShadow(ctx, 640, 524, 252, 60, 0.2);
+  ctx.fillStyle = rg(ctx, 640, 520, 0, 250, [[0, '#c05a42'], [0.75, '#a8442f'], [1, '#8e3a28']]);
   ctx.beginPath();
   ctx.ellipse(640, 520, 250, 58, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -367,8 +474,14 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(640, 520, 225, 46, 0, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.strokeStyle = 'rgba(232,180,90,0.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(640, 520, 190, 36, 0, 0, Math.PI * 2);
+  ctx.stroke();
   // Second rug, left-middle — the band above the main rug was bare tile.
-  ctx.fillStyle = '#b4503a';
+  softShadow(ctx, 300, 443, 152, 44, 0.2);
+  ctx.fillStyle = rg(ctx, 300, 440, 0, 150, [[0, '#c05a42'], [0.75, '#a8442f'], [1, '#8e3a28']]);
   ctx.beginPath();
   ctx.ellipse(300, 440, 150, 42, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -379,7 +492,8 @@ function drawRoom(ctx, world) {
   ctx.stroke();
   // Third rug, right-middle — the band above the right dining table was
   // still bare tile. Flat like the other rugs: the chef walks over it.
-  ctx.fillStyle = '#b4503a';
+  softShadow(ctx, 1060, 387, 112, 32, 0.2);
+  ctx.fillStyle = rg(ctx, 1060, 385, 0, 110, [[0, '#c05a42'], [0.75, '#a8442f'], [1, '#8e3a28']]);
   ctx.beginPath();
   ctx.ellipse(1060, 385, 110, 30, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -388,10 +502,11 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(1060, 385, 94, 22, 0, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = '#a04a32';
+  ctx.fillStyle = lg(ctx, 40, 302, 40, 314, [[0, '#b4503a'], [1, '#7e3a26']]);
   ctx.fillRect(40, 302, 1200, 12);
   for (const [sx, sy] of [[70, 585], [130, 600]]) {
-    ctx.fillStyle = '#e8d9b0';
+    softShadow(ctx, sx, sy + 14, 32, 10, 0.3);
+    ctx.fillStyle = rg(ctx, sx - 8, sy - 8, 0, 36, [[0, '#f4e7c2'], [0.7, '#e8d9b0'], [1, '#c4ac72']]);
     ctx.beginPath();
     ctx.ellipse(sx, sy, 30, 22, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -402,21 +517,23 @@ function drawRoom(ctx, world) {
     ctx.stroke();
   }
   // Dining table, bottom right, with two seated customers.
-  ctx.fillStyle = '#6e451f';
+  softShadow(ctx, 1105, 552, 66, 22, 0.3);
+  ctx.fillStyle = rg(ctx, 1105, 540, 0, 64, [[0, '#96683a'], [1, '#5e3a18']]);
   ctx.beginPath();
   ctx.ellipse(1105, 545, 62, 20, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#8a5a2b';
+  ctx.fillStyle = lg(ctx, 1100, 545, 1110, 587, [[0, '#a06a35'], [1, '#6e451f']]);
   ctx.fillRect(1100, 545, 10, 42);
-  ctx.fillStyle = '#fdfbf6';
+  ctx.fillStyle = rg(ctx, 1105, 534, 0, 54, [[0, '#ffffff'], [0.7, '#fdfbf6'], [1, '#ddd2b8']]);
   ctx.beginPath();
   ctx.ellipse(1105, 538, 52, 14, 0, 0, Math.PI * 2);
   ctx.fill();
-  for (const [cx, cy, shirt] of [[1020, 560, '#2e7f7b'], [1190, 560, '#d94f3d']]) {
-    ctx.fillStyle = shirt;
+  for (const [cx, cy, shirt, light, dark] of [[1020, 560, '#2e7f7b', '#4a9a94', '#1f5a56'], [1190, 560, '#d94f3d', '#e86a58', '#a82c20']]) {
+    softShadow(ctx, cx, cy + 26, 20, 8, 0.3);
+    ctx.fillStyle = lg(ctx, cx - 16, cy - 8, cx + 16, cy + 26, [[0, light], [0.55, shirt], [1, dark]]);
     rr(ctx, cx - 16, cy - 8, 32, 34, 10);
     ctx.fill();
-    ctx.fillStyle = '#f2c184';
+    ctx.fillStyle = rg(ctx, cx - 3, cy - 22, 0, 14, [[0, '#f7cf9a'], [1, '#d99a5c']]);
     ctx.beginPath();
     ctx.arc(cx, cy - 18, 12, 0, Math.PI * 2);
     ctx.fill();
@@ -424,28 +541,39 @@ function drawRoom(ctx, world) {
     ctx.beginPath();
     ctx.arc(cx, cy - 18, 12, Math.PI, 0);
     ctx.fill();
+    // Hair sheen.
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(cx - 3, cy - 26, 5, 2.5, -0.4, 0, Math.PI * 2);
+    ctx.fill();
   }
   // Second dining table, bottom-centre-left, with one customer.
-  ctx.fillStyle = '#6e451f';
+  softShadow(ctx, 400, 551, 50, 17, 0.3);
+  ctx.fillStyle = rg(ctx, 400, 540, 0, 48, [[0, '#96683a'], [1, '#5e3a18']]);
   ctx.beginPath();
   ctx.ellipse(400, 545, 46, 15, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#8a5a2b';
+  ctx.fillStyle = lg(ctx, 396, 545, 404, 579, [[0, '#a06a35'], [1, '#6e451f']]);
   ctx.fillRect(396, 545, 8, 34);
-  ctx.fillStyle = '#fdfbf6';
+  ctx.fillStyle = rg(ctx, 400, 535, 0, 40, [[0, '#ffffff'], [0.7, '#fdfbf6'], [1, '#ddd2b8']]);
   ctx.beginPath();
   ctx.ellipse(400, 539, 38, 11, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#7a4a9e';
+  softShadow(ctx, 332, 582, 18, 7, 0.3);
+  ctx.fillStyle = lg(ctx, 318, 552, 346, 582, [[0, '#9a6ab8'], [0.55, '#7a4a9e'], [1, '#5a3578']]);
   rr(ctx, 318, 552, 28, 30, 9);
   ctx.fill();
-  ctx.fillStyle = '#f2c184';
+  ctx.fillStyle = rg(ctx, 329, 540, 0, 13, [[0, '#f7cf9a'], [1, '#d99a5c']]);
   ctx.beginPath();
   ctx.arc(332, 544, 11, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = '#2b1d12';
   ctx.beginPath();
   ctx.arc(332, 544, 11, Math.PI, 0);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(329, 536, 4, 2, -0.4, 0, Math.PI * 2);
   ctx.fill();
   // (The potted plant used to sit here; the dining corner fills that role.)
 }
@@ -454,14 +582,17 @@ function drawRoom(ctx, world) {
 function drawStations(ctx, world) {
   const t = world.elapsed;
   for (const s of STATIONS) {
-    // Counter body.
-    ctx.fillStyle = COLORS.counterWood;
+    // Counter body: soft shadow first, then a vertical wood gradient,
+    // a lit top with gloss, and a shaded edge — timber, not a flat box.
+    softShadow(ctx, s.cx, s.y + s.h + 4, s.w / 2, 8, 0.3);
+    ctx.fillStyle = lg(ctx, s.x, s.y, s.x, s.y + s.h, [[0, '#a06a35'], [0.55, '#8a5a2b'], [1, '#6e451f']]);
     rr(ctx, s.x, s.y, s.w, s.h, 10);
     ctx.fill();
-    ctx.fillStyle = COLORS.counterTop;
+    ctx.fillStyle = lg(ctx, s.x, s.y, s.x, s.y + 26, [[0, '#cf9450'], [0.6, '#b07a3e'], [1, '#96621a']]);
     rr(ctx, s.x, s.y, s.w, 26, 10);
     ctx.fill();
-    ctx.fillStyle = COLORS.counterEdge;
+    glossTop(ctx, s.x, s.y, s.w, 26, 10, 0.28);
+    ctx.fillStyle = lg(ctx, s.x, s.y + 26, s.x, s.y + 29, [[0, '#5a3413'], [1, '#6e451f']]);
     ctx.fillRect(s.x, s.y + 26, s.w, 3);
     // Wood grain on the counter top + plank seams on the body, so the
     // counter reads as timber, not a flat brown box. Station contents
@@ -484,9 +615,6 @@ function drawStations(ctx, world) {
       ctx.lineTo(px, s.y + s.h - 4);
       ctx.stroke();
     }
-    // Drop shadow under the counter for depth.
-    ctx.fillStyle = 'rgba(0,0,0,0.16)';
-    ctx.fillRect(s.x + 4, s.y + s.h, s.w - 8, 5);
     // Label plate.
     ctx.fillStyle = '#3b2a1a';
     rr(ctx, s.x + 14, s.y + s.h - 24, s.w - 28, 18, 6);
@@ -500,10 +628,10 @@ function drawStations(ctx, world) {
     if (s.id === 'trash') {
       // Stainless bin with a highlight stripe, lid ajar, and a crumpled
       // paper ball beside it.
-      ctx.fillStyle = '#6a6a72';
+      ctx.fillStyle = lg(ctx, s.cx - 28, s.y + 34, s.cx + 28, s.y + 76, [[0, '#9a9aa2'], [0.45, '#6a6a72'], [1, '#3f3f46']]);
       rr(ctx, s.cx - 28, s.y + 34, 56, 42, 8);
       ctx.fill();
-      ctx.fillStyle = '#8a8a94';
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.fillRect(s.cx - 28, s.y + 38, 10, 34);
       ctx.fillStyle = '#4a4a52';
       ctx.fillRect(s.cx - 28, s.y + 68, 56, 8);
@@ -527,13 +655,13 @@ function drawStations(ctx, world) {
 
     if (s.id === 'crate') {
       // Open slatted crate, produce heaped high and spilling over the rim.
-      ctx.fillStyle = '#7a4a22';
+      ctx.fillStyle = lg(ctx, s.cx - 62, s.y + 40, s.cx + 62, s.y + 76, [[0, '#96683a'], [1, '#5e3a18']]);
       rr(ctx, s.cx - 62, s.y + 40, 124, 36, 6);
       ctx.fill();
-      ctx.fillStyle = '#4a2c12';
+      glossTop(ctx, s.cx - 62, s.y + 40, 124, 36, 6, 0.2);
+      ctx.fillStyle = lg(ctx, s.cx - 58, s.y + 36, s.cx + 58, s.y + 48, [[0, '#5a3413'], [1, '#3a220c']]);
       rr(ctx, s.cx - 58, s.y + 36, 116, 12, 6);
-      ctx.fill();
-      ctx.strokeStyle = '#5a3413';
+      ctx.fill();      ctx.strokeStyle = '#5a3413';
       ctx.lineWidth = 2;
       for (const lx of [-31, 0, 31]) {
         ctx.beginPath();
@@ -564,9 +692,11 @@ function drawStations(ctx, world) {
 
     if (s.id === 'board') {
       // Thick wooden board with a handle hole, food chopped big on it.
-      ctx.fillStyle = '#c99a5b';
+      softShadow(ctx, s.cx, s.y + 80, 72, 8, 0.25);
+      ctx.fillStyle = lg(ctx, s.cx - 70, s.y + 30, s.cx + 70, s.y + 78, [[0, '#dcb06e'], [0.55, '#c99a5b'], [1, '#9a7138']]);
       rr(ctx, s.cx - 70, s.y + 30, 140, 48, 10);
       ctx.fill();
+      glossTop(ctx, s.cx - 70, s.y + 30, 140, 48, 10, 0.25);
       ctx.fillStyle = '#a87c3f';
       ctx.beginPath();
       ctx.arc(s.cx + 62, s.y + 54, 5, 0, Math.PI * 2);
@@ -633,7 +763,7 @@ function drawStations(ctx, world) {
       for (let b = 0; b < 2; b += 1) {
         const bx = s.cx - 42 + b * 84;
         // Burner grate.
-        ctx.fillStyle = '#2e2e33';
+        ctx.fillStyle = rg(ctx, bx, s.y + 52, 0, 42, [[0, '#4a4a52'], [1, '#1c1c20']]);
         ctx.beginPath();
         ctx.ellipse(bx, s.y + 56, 40, 15, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -647,15 +777,29 @@ function drawStations(ctx, world) {
         }
         const item = world.burners[b].item;
         if (item) {
+          if (item.state === 'raw') {
+            // Warm fire glow pooling on the counter around the burner.
+            const glow = 0.5 + 0.14 * Math.sin(t * 10 + b * 2.4);
+            ctx.fillStyle = rg(ctx, bx, s.y + 56, 0, 62, [[0, `rgba(255,140,26,${glow})`], [0.55, 'rgba(255,120,20,0.18)'], [1, 'rgba(255,120,20,0)']]);
+            ctx.beginPath();
+            ctx.ellipse(bx, s.y + 56, 62, 26, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
           // Pot, bigger, with a rim.
-          ctx.fillStyle = '#3f3f46';
+          ctx.fillStyle = rg(ctx, bx - 8, s.y + 44, 0, 36, [[0, '#6a6a72'], [0.6, '#3f3f46'], [1, '#2a2a2e']]);
           ctx.beginPath();
           ctx.ellipse(bx, s.y + 52, 34, 13, 0, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = '#5a5a62';
+          ctx.fillStyle = rg(ctx, bx - 8, s.y + 40, 0, 32, [[0, '#8a8a94'], [1, '#4a4a52']]);
           ctx.beginPath();
           ctx.ellipse(bx, s.y + 47, 30, 11, 0, 0, Math.PI * 2);
           ctx.fill();
+          // Steel rim light on the pot's top edge.
+          ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(bx, s.y + 47, 26, 9, 0, Math.PI * 1.1, Math.PI * 1.9);
+          ctx.stroke();
           if (item.state === 'raw') {
             // Live flame licking the pot sides, flickering with time.
             const fl = 1 + 0.18 * Math.sin(t * 10 + b * 2.4);
@@ -688,12 +832,13 @@ function drawStations(ctx, world) {
             ctx.beginPath();
             ctx.arc(bx, s.y + 44, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, item.progress));
             ctx.stroke();
-            // Steam, bigger.
-            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            // Steam, bigger — soft puffs fading as they rise.
             for (let i = 0; i < 4; i += 1) {
               const sy = s.y + 32 - ((t * 18 + i * 8) % 28);
+              const sx = bx - 10 + i * 7;
+              ctx.fillStyle = rg(ctx, sx, sy, 0, 5, [[0, 'rgba(255,255,255,0.6)'], [1, 'rgba(255,255,255,0)']]);
               ctx.beginPath();
-              ctx.arc(bx - 10 + i * 7, sy, 4, 0, Math.PI * 2);
+              ctx.arc(sx, sy, 5, 0, Math.PI * 2);
               ctx.fill();
             }
             // Timer tag on the counter's top strip — never over the label.
@@ -736,9 +881,10 @@ function drawStations(ctx, world) {
 
     if (s.id === 'table') {
       // Stainless prep inlay behind the plates, with a little sauce bowl.
-      ctx.fillStyle = '#c9ced3';
+      ctx.fillStyle = lg(ctx, s.cx - 82, s.y + 32, s.cx + 82, s.y + 74, [[0, '#e6eaee'], [0.55, '#c9ced3'], [1, '#9aa0a6']]);
       rr(ctx, s.cx - 82, s.y + 32, 164, 42, 8);
       ctx.fill();
+      glossTop(ctx, s.cx - 82, s.y + 32, 164, 42, 8, 0.35);
       ctx.strokeStyle = 'rgba(255,255,255,0.6)';
       ctx.lineWidth = 1;
       for (let bl = 0; bl < 3; bl += 1) {
@@ -804,13 +950,9 @@ function drawStations(ctx, world) {
       ctx.font = '700 15px system-ui, sans-serif';
       ctx.fillText('SAJI  →', s.cx, s.y + 54);
       // Warm glow over the pass, tinting the panel.
-      ctx.fillStyle = 'rgba(242,177,52,0.16)';
+      ctx.fillStyle = rg(ctx, s.cx, s.y + 14, 0, 85, [[0, 'rgba(242,177,52,0.32)'], [0.6, 'rgba(242,177,52,0.12)'], [1, 'rgba(242,177,52,0)']]);
       ctx.beginPath();
-      ctx.moveTo(s.cx - 30, s.y + 10);
-      ctx.lineTo(s.cx + 30, s.y + 10);
-      ctx.lineTo(s.cx + 72, s.y + 76);
-      ctx.lineTo(s.cx - 72, s.y + 76);
-      ctx.closePath();
+      ctx.ellipse(s.cx, s.y + 30, 80, 48, 0, 0, Math.PI * 2);
       ctx.fill();
       // Service bell, bigger, with a highlight.
       ctx.fillStyle = '#f2b134';
@@ -844,11 +986,14 @@ function drawTickets(ctx, world) {
     const y = TICKET.y;
     const urgent = ticket.patience < 15;
     ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.28)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
     if (urgent && Math.sin(world.elapsed * 8) > 0) {
       ctx.shadowColor = '#d94f3d';
       ctx.shadowBlur = 14;
     }
-    ctx.fillStyle = '#fffdf4';
+    ctx.fillStyle = lg(ctx, x, y, x, y + TICKET.h, [[0, '#fffdf4'], [1, '#efe4c4']]);
     rr(ctx, x, y, TICKET.w, TICKET.h, 10);
     ctx.fill();
     ctx.restore();
@@ -896,33 +1041,31 @@ function drawChef(ctx, world) {
   ctx.translate(x, y);
   ctx.scale(1.55, 1.55);
   ctx.translate(-x, -y);
-  ctx.fillStyle = 'rgba(0,0,0,0.22)';
-  ctx.beginPath();
-  ctx.ellipse(x, chef.y + 32, 30, 8, 0, 0, Math.PI * 2);
-  ctx.fill();
+  softShadow(ctx, x, chef.y + 32, 30, 8, 0.3);
   // Shoes.
-  ctx.fillStyle = '#3b2a1a';
+  ctx.fillStyle = lg(ctx, x - 20, y + 25, x + 20, y + 35, [[0, '#5a4230'], [1, '#2a1c0e']]);
   ctx.beginPath();
   ctx.ellipse(x - 11, y + 30, 9, 5, 0, 0, Math.PI * 2);
   ctx.ellipse(x + 11, y + 30, 9, 5, 0, 0, Math.PI * 2);
   ctx.fill();
   // Arms: short sleeves at the sides, hands below them.
-  ctx.fillStyle = '#2e7f7b';
+  ctx.fillStyle = lg(ctx, x - 28, y - 4, x + 28, y + 20, [[0, '#3f948d'], [0.55, '#2e7f7b'], [1, '#1f5a56']]);
   rr(ctx, x - 28, y - 4, 10, 24, 5);
   ctx.fill();
   rr(ctx, x + 18, y - 4, 10, 24, 5);
   ctx.fill();
-  ctx.fillStyle = '#f2c184';
+  ctx.fillStyle = rg(ctx, x - 23, y + 20, 0, 6, [[0, '#f9d6a4'], [1, '#dd9c55']]);
   ctx.beginPath();
   ctx.arc(x - 23, y + 22, 5, 0, Math.PI * 2);
   ctx.arc(x + 23, y + 22, 5, 0, Math.PI * 2);
   ctx.fill();
   // Body: teal shirt + white apron. Drawn big on purpose: the chef is
   // the game's hero and must read at a glance when the frame shrinks.
-  ctx.fillStyle = '#2e7f7b';
+  ctx.fillStyle = lg(ctx, x - 22, y - 8, x + 22, y + 31, [[0, '#3f948d'], [0.55, '#2e7f7b'], [1, '#1f5a56']]);
   rr(ctx, x - 22, y - 8, 44, 39, 12);
   ctx.fill();
-  ctx.fillStyle = '#fdfbf6';
+  glossTop(ctx, x - 22, y - 8, 44, 39, 12, 0.18);
+  ctx.fillStyle = lg(ctx, x - 15, y + 3, x + 16, y + 31, [[0, '#ffffff'], [1, '#e2d8bd']]);
   rr(ctx, x - 15, y + 3, 31, 28, 7);
   ctx.fill();
   // Apron pocket with a tiny chili emblem.
@@ -939,11 +1082,11 @@ function drawChef(ctx, world) {
   ctx.closePath();
   ctx.fill();
   // Head + chef hat.
-  ctx.fillStyle = '#f2c184';
+  ctx.fillStyle = rg(ctx, x - 4, y - 26, 0, 20, [[0, '#f9d6a4'], [0.7, '#f2c184'], [1, '#dd9c55']]);
   ctx.beginPath();
   ctx.arc(x, y - 21, 17, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#fdfbf6';
+  ctx.fillStyle = lg(ctx, x - 18, y - 50, x + 18, y - 28, [[0, '#ffffff'], [1, '#ddd2b8']]);
   rr(ctx, x - 18, y - 44, 36, 16, 7);
   ctx.fill();
   ctx.beginPath();
@@ -966,6 +1109,12 @@ function drawChef(ctx, world) {
   ctx.beginPath();
   ctx.arc(x + ex * 0.5, y - 16, 5, 0.2, Math.PI - 0.2);
   ctx.stroke();
+  // Warm rim light on the side facing the stove and heat lamp.
+  ctx.strokeStyle = 'rgba(255,190,90,0.55)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(x, y - 21, 16, -Math.PI * 0.35, Math.PI * 0.3);
+  ctx.stroke();
   // Carried item rides in the chef's hand at his side — clear of the
   // counter labels above him.
   if (world.carrying) {
@@ -985,8 +1134,10 @@ function drawChef(ctx, world) {
 
 // --- HUD, picker, overlays ------------------------------------------------------
 function drawHud(ctx, world) {
-  ctx.fillStyle = COLORS.hudBg;
+  ctx.fillStyle = lg(ctx, 0, 0, 0, 56, [[0, '#4a3524'], [0.6, '#3b2a1a'], [1, '#241608']]);
   ctx.fillRect(0, 0, VIEW.width, 56);
+  ctx.fillStyle = 'rgba(242,177,52,0.4)';
+  ctx.fillRect(0, 54, VIEW.width, 2);
   ctx.fillStyle = COLORS.hudText;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
@@ -1020,16 +1171,21 @@ function drawHud(ctx, world) {
 }
 
 function drawPicker(ctx, world) {
-  ctx.fillStyle = COLORS.hudBg;
+  ctx.fillStyle = lg(ctx, 0, 644, 0, 720, [[0, '#4a3524'], [0.6, '#3b2a1a'], [1, '#241608']]);
   ctx.fillRect(0, 644, VIEW.width, 76);
+  ctx.fillStyle = 'rgba(242,177,52,0.4)';
+  ctx.fillRect(0, 644, VIEW.width, 2);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   INGREDIENTS.forEach((ing, i) => {
     const bx = PICKER.x + i * (PICKER.w + PICKER.gap);
     const selected = world.selectedIng === ing.id;
-    ctx.fillStyle = selected ? '#f2b134' : '#5a4632';
+    ctx.fillStyle = selected
+      ? lg(ctx, bx, PICKER.y, bx, PICKER.y + PICKER.h, [[0, '#ffd34d'], [1, '#d98a1e']])
+      : lg(ctx, bx, PICKER.y, bx, PICKER.y + PICKER.h, [[0, '#6e563e'], [1, '#46331f']]);
     rr(ctx, bx, PICKER.y, PICKER.w, PICKER.h, 8);
     ctx.fill();
+    if (!selected) glossTop(ctx, bx, PICKER.y, PICKER.w, PICKER.h, 8, 0.14);
     ctx.fillStyle = '#fff3d6';
     drawFood(ctx, ing.id, bx + PICKER.w / 2, PICKER.y + 20, 14, ing.prep === 'none' ? 'ready' : 'raw');
     ctx.font = '700 11px system-ui, sans-serif';
@@ -1043,9 +1199,10 @@ function drawPicker(ctx, world) {
   });
   // Carried-item slot.
   const sx = 700;
-  ctx.fillStyle = '#5a4632';
+  ctx.fillStyle = lg(ctx, sx, PICKER.y, sx, PICKER.y + PICKER.h, [[0, '#6e563e'], [1, '#46331f']]);
   rr(ctx, sx, PICKER.y, 150, PICKER.h, 8);
   ctx.fill();
+  glossTop(ctx, sx, PICKER.y, 150, PICKER.h, 8, 0.14);
   ctx.fillStyle = '#c9a97a';
   ctx.font = '700 11px system-ui, sans-serif';
   ctx.fillText('DI TANGAN', sx + 75, PICKER.y + 10);
@@ -1168,6 +1325,9 @@ export function render(ctx, world) {
   drawStations(ctx, world);
   drawChef(ctx, world);
   drawPopups(ctx, world);
+  // Cinematic vignette over the room only — HUD and picker stay crisp.
+  ctx.fillStyle = rg(ctx, 640, 360, 260, 820, [[0, 'rgba(30,18,8,0)'], [0.8, 'rgba(30,18,8,0.04)'], [1, 'rgba(30,18,8,0.16)']]);
+  ctx.fillRect(0, 0, VIEW.width, VIEW.height);
   drawHud(ctx, world);
   drawPicker(ctx, world);
   if (world.paused) {
