@@ -62,6 +62,11 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.arc(-r * 0.5 + i * r * 0.25, -r * 0.15 + (i % 2) * r * 0.18, r * 0.09, 0, Math.PI * 2);
       ctx.fill();
     }
+    // Green garnish leaf on top of the mound.
+    ctx.fillStyle = '#58b368';
+    ctx.beginPath();
+    ctx.ellipse(r * 0.3, -r * 0.35, r * 0.28, r * 0.14, -0.5, 0, Math.PI * 2);
+    ctx.fill();
   } else if (ingId === 'ayam') {
     ctx.fillStyle = '#c47a28';
     ctx.beginPath();
@@ -111,6 +116,15 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.fill();
       ctx.stroke();
     }
+    // Grill marks on each cube.
+    ctx.strokeStyle = '#c98a2e';
+    ctx.lineWidth = 2;
+    for (const [dx, dy] of [[-0.35, 0.1], [0.35, -0.15]]) {
+      ctx.beginPath();
+      ctx.moveTo(dx * r - r * 0.3, dy * r - r * 0.2);
+      ctx.lineTo(dx * r + r * 0.3, dy * r + r * 0.2);
+      ctx.stroke();
+    }
   } else if (ingId === 'sayur') {
     ctx.fillStyle = '#58b368';
     for (const [dx, dy, rot] of [[-0.35, 0.1, -0.5], [0.3, 0.15, 0.4], [0, -0.35, 0]]) {
@@ -141,6 +155,13 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.beginPath();
     ctx.moveTo(r * 0.7, -r * 0.5);
     ctx.lineTo(r * 0.95, -r * 0.85);
+    ctx.stroke();
+    // Gloss highlight along the chili.
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = r * 0.12;
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.4, -r * 0.45);
+    ctx.quadraticCurveTo(-r * 0.1, -r * 0.1, r * 0.2, -r * 0.4);
     ctx.stroke();
   } else if (ingId === 'teh') {
     ctx.fillStyle = '#c98a2e';
@@ -211,9 +232,21 @@ function drawRoom(ctx, world) {
   }
   ctx.fillStyle = 'rgba(0,0,0,0.08)';
   ctx.fillRect(0, 296, width, 8);
-  // Wall band + menu board.
-  ctx.fillStyle = COLORS.wallBand;
+  // Wall band: subway-tile backsplash behind the counter row, with a
+  // teal trim at the bottom — the wall must read as a kitchen, not a
+  // flat band. The menu board and window are drawn over it later.
+  ctx.fillStyle = '#d9c49a';
   ctx.fillRect(0, 152, width, 44);
+  for (let row = 0; row < 2; row += 1) {
+    const ty = 154 + row * 21;
+    const off = row === 1 ? 23 : 0;
+    for (let tx = -1; tx < 29; tx += 1) {
+      ctx.fillStyle = row === 0 ? '#fdf6e3' : '#f3e7c8';
+      ctx.fillRect(tx * 46 + off + 1, ty, 44, 19);
+    }
+  }
+  ctx.fillStyle = '#2e7f7b';
+  ctx.fillRect(0, 192, width, 4);
   ctx.fillStyle = '#3b2a1a';
   rr(ctx, 390, 156, 500, 36, 8);
   ctx.fill();
@@ -238,6 +271,37 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.arc(95, 177, 9, 0, Math.PI * 2);
   ctx.fill();
+  // Hanging cookware in the backsplash gaps: a frying pan left of the
+  // menu board, a small pot right of it. Both hang from hooks at the
+  // top of the tile band, clear of lamps, board and poster.
+  ctx.strokeStyle = '#6e451f';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(320, 152);
+  ctx.lineTo(320, 162);
+  ctx.stroke();
+  ctx.fillStyle = '#3a3a40';
+  ctx.beginPath();
+  ctx.arc(320, 177, 15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#5a5a62';
+  ctx.beginPath();
+  ctx.arc(320, 177, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#6e451f';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(925, 152);
+  ctx.lineTo(925, 162);
+  ctx.stroke();
+  ctx.fillStyle = '#4a4a52';
+  rr(ctx, 905, 162, 40, 24, 6);
+  ctx.fill();
+  ctx.fillStyle = '#6a6a72';
+  rr(ctx, 905, 162, 40, 8, 6);
+  ctx.fill();
+  ctx.fillStyle = '#2e2e33';
+  ctx.fillRect(923, 158, 4, 6);
   // Wall clock + framed poster, right of the ticket row (tickets end x 932).
   ctx.fillStyle = '#3b2a1a';
   ctx.beginPath();
@@ -399,6 +463,30 @@ function drawStations(ctx, world) {
     ctx.fill();
     ctx.fillStyle = COLORS.counterEdge;
     ctx.fillRect(s.x, s.y + 26, s.w, 3);
+    // Wood grain on the counter top + plank seams on the body, so the
+    // counter reads as timber, not a flat brown box. Station contents
+    // are drawn after this and cover the seams where they overlap.
+    ctx.strokeStyle = 'rgba(110,69,31,0.35)';
+    ctx.lineWidth = 1.5;
+    for (let gy = 0; gy < 3; gy += 1) {
+      ctx.beginPath();
+      ctx.moveTo(s.x + 8, s.y + 8 + gy * 8);
+      ctx.bezierCurveTo(s.x + s.w * 0.3, s.y + 6 + gy * 8, s.x + s.w * 0.6, s.y + 10 + gy * 8, s.x + s.w - 8, s.y + 8 + gy * 8);
+      ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(255,233,184,0.35)';
+    ctx.fillRect(s.x, s.y + 1, s.w, 2);
+    ctx.strokeStyle = 'rgba(59,42,26,0.18)';
+    ctx.lineWidth = 2;
+    for (let px = s.x + 38; px < s.x + s.w - 10; px += 38) {
+      ctx.beginPath();
+      ctx.moveTo(px, s.y + 30);
+      ctx.lineTo(px, s.y + s.h - 4);
+      ctx.stroke();
+    }
+    // Drop shadow under the counter for depth.
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.fillRect(s.x + 4, s.y + s.h, s.w - 8, 5);
     // Label plate.
     ctx.fillStyle = '#3b2a1a';
     rr(ctx, s.x + 14, s.y + s.h - 24, s.w - 28, 18, 6);
@@ -410,38 +498,105 @@ function drawStations(ctx, world) {
     ctx.fillText(s.label, s.cx, s.y + s.h - 15);
 
     if (s.id === 'trash') {
+      // Stainless bin with a highlight stripe, lid ajar, and a crumpled
+      // paper ball beside it.
+      ctx.fillStyle = '#6a6a72';
+      rr(ctx, s.cx - 28, s.y + 34, 56, 42, 8);
+      ctx.fill();
+      ctx.fillStyle = '#8a8a94';
+      ctx.fillRect(s.cx - 28, s.y + 38, 10, 34);
       ctx.fillStyle = '#4a4a52';
-      rr(ctx, s.cx - 26, s.y + 34, 52, 40, 6);
+      ctx.fillRect(s.cx - 28, s.y + 68, 56, 8);
+      ctx.save();
+      ctx.translate(s.cx + 26, s.y + 30);
+      ctx.rotate(-0.35);
+      ctx.fillStyle = '#3a3a40';
+      rr(ctx, -30, -6, 60, 10, 5);
       ctx.fill();
-      ctx.fillStyle = '#2e2e33';
-      rr(ctx, s.cx - 30, s.y + 28, 60, 10, 5);
+      ctx.restore();
+      ctx.fillStyle = '#fffdf4';
+      ctx.beginPath();
+      ctx.arc(s.cx + 44, s.y + 66, 9, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = '#c9b48a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(s.cx + 44, s.y + 66, 5, 0, Math.PI * 2);
+      ctx.stroke();
     }
 
     if (s.id === 'crate') {
-      ctx.fillStyle = '#a06a35';
-      rr(ctx, s.cx - 52, s.y + 34, 104, 40, 6);
+      // Open slatted crate, produce heaped high and spilling over the rim.
+      ctx.fillStyle = '#7a4a22';
+      rr(ctx, s.cx - 62, s.y + 40, 124, 36, 6);
       ctx.fill();
-      ctx.strokeStyle = '#6e451f';
+      ctx.fillStyle = '#4a2c12';
+      rr(ctx, s.cx - 58, s.y + 36, 116, 12, 6);
+      ctx.fill();
+      ctx.strokeStyle = '#5a3413';
+      ctx.lineWidth = 2;
+      for (const lx of [-31, 0, 31]) {
+        ctx.beginPath();
+        ctx.moveTo(s.cx + lx, s.y + 42);
+        ctx.lineTo(s.cx + lx, s.y + 74);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = '#a06a35';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(s.cx - 52, s.y + 54);
-      ctx.lineTo(s.cx + 52, s.y + 54);
+      ctx.moveTo(s.cx - 62, s.y + 58);
+      ctx.lineTo(s.cx + 62, s.y + 58);
       ctx.stroke();
       const sel = INGREDIENT_BY_ID[world.selectedIng];
-      drawFood(ctx, sel.id, s.cx - 26, s.y + 52, 15, sel.prep === 'none' ? 'ready' : 'raw');
-      drawFood(ctx, 'sayur', s.cx + 4, s.y + 50, 13, 'raw');
-      drawFood(ctx, 'ayam', s.cx + 30, s.y + 52, 14, 'raw');
+      drawFood(ctx, sel.id, s.cx - 40, s.y + 34, 17, sel.prep === 'none' ? 'ready' : 'raw');
+      drawFood(ctx, 'sayur', s.cx - 8, s.y + 30, 16, 'raw');
+      drawFood(ctx, 'ayam', s.cx + 22, s.y + 34, 16, 'raw');
+      drawFood(ctx, 'cabai', s.cx + 48, s.y + 30, 14, 'raw');
+      ctx.fillStyle = '#f28c28';
+      ctx.beginPath();
+      ctx.arc(s.cx + 56, s.y + 52, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#2f7d3d';
+      ctx.beginPath();
+      ctx.arc(s.cx + 56, s.y + 43, 4, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     if (s.id === 'board') {
-      ctx.fillStyle = '#e8c98f';
-      rr(ctx, s.cx - 62, s.y + 32, 124, 44, 8);
+      // Thick wooden board with a handle hole, food chopped big on it.
+      ctx.fillStyle = '#c99a5b';
+      rr(ctx, s.cx - 70, s.y + 30, 140, 48, 10);
       ctx.fill();
+      ctx.fillStyle = '#a87c3f';
+      ctx.beginPath();
+      ctx.arc(s.cx + 62, s.y + 54, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(110,69,31,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(s.cx - 60, s.y + 40);
+      ctx.lineTo(s.cx + 60, s.y + 40);
+      ctx.stroke();
+      // A garlic clove and a spring-onion sprig waiting at the corner.
+      ctx.fillStyle = '#fdfbf6';
+      ctx.beginPath();
+      ctx.ellipse(s.cx - 52, s.y + 62, 8, 6, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#2f7d3d';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(s.cx + 48, s.y + 68);
+      ctx.lineTo(s.cx + 58, s.y + 58);
+      ctx.stroke();
       const item = world.board.item;
       if (item) {
-        drawFood(ctx, item.ing, s.cx, s.y + 46, 17, item.state);
+        drawFood(ctx, item.ing, s.cx - 4, s.y + 52, 22, item.state);
         if (item.state === 'raw') {
+          // Chopped bits scattered on the board + progress + knife.
+          ctx.fillStyle = '#58b368';
+          for (const [bx, by] of [[-26, 12], [-14, 16], [18, 14], [28, 8]]) {
+            ctx.fillRect(s.cx + bx - 3, s.y + 52 + by - 3, 6, 6);
+          }
           // Chopping progress + knife, kept above the station label.
           ctx.fillStyle = 'rgba(0,0,0,0.25)';
           rr(ctx, s.cx - 40, s.y + 68, 80, 7, 3);
@@ -451,10 +606,16 @@ function drawStations(ctx, world) {
           ctx.fill();
           const kx = s.cx + Math.sin(t * 14) * 26;
           ctx.strokeStyle = '#d7d7de';
-          ctx.lineWidth = 5;
+          ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.moveTo(kx - 16, s.y + 34);
-          ctx.lineTo(kx + 16, s.y + 38);
+          ctx.moveTo(kx - 18, s.y + 32);
+          ctx.lineTo(kx + 18, s.y + 38);
+          ctx.stroke();
+          ctx.strokeStyle = '#8a5a2b';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(kx + 18, s.y + 38);
+          ctx.lineTo(kx + 28, s.y + 42);
           ctx.stroke();
         } else {
           ctx.fillStyle = '#2f7d3d';
@@ -471,34 +632,68 @@ function drawStations(ctx, world) {
     if (s.id === 'stove') {
       for (let b = 0; b < 2; b += 1) {
         const bx = s.cx - 42 + b * 84;
-        ctx.fillStyle = '#3a3a40';
+        // Burner grate.
+        ctx.fillStyle = '#2e2e33';
         ctx.beginPath();
-        ctx.ellipse(bx, s.y + 54, 36, 14, 0, 0, Math.PI * 2);
+        ctx.ellipse(bx, s.y + 56, 40, 15, 0, 0, Math.PI * 2);
         ctx.fill();
+        ctx.strokeStyle = '#1c1c20';
+        ctx.lineWidth = 2;
+        for (let g = -1; g <= 1; g += 1) {
+          ctx.beginPath();
+          ctx.moveTo(bx - 38, s.y + 56 + g * 5);
+          ctx.lineTo(bx + 38, s.y + 56 + g * 5);
+          ctx.stroke();
+        }
         const item = world.burners[b].item;
         if (item) {
+          // Pot, bigger, with a rim.
+          ctx.fillStyle = '#3f3f46';
+          ctx.beginPath();
+          ctx.ellipse(bx, s.y + 52, 34, 13, 0, 0, Math.PI * 2);
+          ctx.fill();
           ctx.fillStyle = '#5a5a62';
           ctx.beginPath();
-          ctx.ellipse(bx, s.y + 48, 30, 11, 0, 0, Math.PI * 2);
+          ctx.ellipse(bx, s.y + 47, 30, 11, 0, 0, Math.PI * 2);
           ctx.fill();
-          drawFood(ctx, item.ing, bx, s.y + 44, 14, item.state);
+          if (item.state === 'raw') {
+            // Live flame licking the pot sides, flickering with time.
+            const fl = 1 + 0.18 * Math.sin(t * 10 + b * 2.4);
+            ctx.fillStyle = 'rgba(255,140,26,0.9)';
+            for (const [fx, fh] of [[-22, 16], [22, 15]]) {
+              ctx.beginPath();
+              ctx.moveTo(bx + fx - 6, s.y + 60);
+              ctx.quadraticCurveTo(bx + fx - 7, s.y + 60 - fh * fl, bx + fx, s.y + 58 - fh * fl - 4);
+              ctx.quadraticCurveTo(bx + fx + 7, s.y + 60 - fh * fl, bx + fx + 6, s.y + 60);
+              ctx.closePath();
+              ctx.fill();
+            }
+            ctx.fillStyle = 'rgba(255,210,61,0.95)';
+            ctx.beginPath();
+            ctx.moveTo(bx - 24, s.y + 60);
+            ctx.quadraticCurveTo(bx - 24, s.y + 50, bx - 20, s.y + 47);
+            ctx.quadraticCurveTo(bx - 18, s.y + 52, bx - 18, s.y + 60);
+            ctx.closePath();
+            ctx.fill();
+          }
+          drawFood(ctx, item.ing, bx, s.y + 44, 18, item.state);
           if (item.state === 'raw') {
             // Progress ring around the pot.
             ctx.strokeStyle = 'rgba(255,255,255,0.35)';
             ctx.lineWidth = 5;
             ctx.beginPath();
-            ctx.arc(bx, s.y + 44, 22, 0, Math.PI * 2);
+            ctx.arc(bx, s.y + 44, 24, 0, Math.PI * 2);
             ctx.stroke();
             ctx.strokeStyle = '#f2b134';
             ctx.beginPath();
-            ctx.arc(bx, s.y + 44, 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, item.progress));
+            ctx.arc(bx, s.y + 44, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, item.progress));
             ctx.stroke();
-            // Steam.
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            for (let i = 0; i < 3; i += 1) {
-              const sy = s.y + 30 - ((t * 18 + i * 9) % 26);
+            // Steam, bigger.
+            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            for (let i = 0; i < 4; i += 1) {
+              const sy = s.y + 32 - ((t * 18 + i * 8) % 28);
               ctx.beginPath();
-              ctx.arc(bx - 8 + i * 8, sy, 3, 0, Math.PI * 2);
+              ctx.arc(bx - 10 + i * 7, sy, 4, 0, Math.PI * 2);
               ctx.fill();
             }
             // Timer tag on the counter's top strip — never over the label.
@@ -526,6 +721,12 @@ function drawStations(ctx, world) {
             ctx.fillText('GOSONG', bx, s.y + 14);
           }
         } else {
+          // Empty burner: faint pan outline + dash.
+          ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(bx, s.y + 54, 30, 11, 0, 0, Math.PI * 2);
+          ctx.stroke();
           ctx.fillStyle = 'rgba(255,255,255,0.25)';
           ctx.font = '700 12px system-ui, sans-serif';
           ctx.fillText('—', bx, s.y + 52);
@@ -534,6 +735,26 @@ function drawStations(ctx, world) {
     }
 
     if (s.id === 'table') {
+      // Stainless prep inlay behind the plates, with a little sauce bowl.
+      ctx.fillStyle = '#c9ced3';
+      rr(ctx, s.cx - 82, s.y + 32, 164, 42, 8);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1;
+      for (let bl = 0; bl < 3; bl += 1) {
+        ctx.beginPath();
+        ctx.moveTo(s.cx - 76, s.y + 40 + bl * 10);
+        ctx.lineTo(s.cx + 76, s.y + 40 + bl * 10);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#fdfbf6';
+      ctx.beginPath();
+      ctx.arc(s.cx, s.y + 42, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#d94f3d';
+      ctx.beginPath();
+      ctx.arc(s.cx, s.y + 41, 6, 0, Math.PI * 2);
+      ctx.fill();
       for (let p = 0; p < 2; p += 1) {
         const px = s.cx - 46 + p * 92;
         const plate = world.plates[p];
@@ -542,13 +763,13 @@ function drawStations(ctx, world) {
           ctx.save();
           ctx.shadowColor = '#f2b134';
           ctx.shadowBlur = 16;
-          drawPlate(ctx, px, s.y + 50, 23);
+          drawPlate(ctx, px, s.y + 50, 25);
           ctx.restore();
         } else {
-          drawPlate(ctx, px, s.y + 50, 23);
+          drawPlate(ctx, px, s.y + 50, 25);
         }
         plate.items.forEach((ing, i) => {
-          drawFood(ctx, ing, px - 11 + (i % 2) * 22, s.y + 44 + Math.floor(i / 2) * 13, 9, 'ready');
+          drawFood(ctx, ing, px - 12 + (i % 2) * 24, s.y + 44 + Math.floor(i / 2) * 14, 12, 'ready');
         });
         if (ready) {
           ctx.fillStyle = '#b8860b';
@@ -563,18 +784,54 @@ function drawStations(ctx, world) {
     }
 
     if (s.id === 'window') {
+      // Heat lamp over the pass: red shade, warm bulb, glow cone.
+      ctx.fillStyle = '#d94f3d';
+      ctx.beginPath();
+      ctx.moveTo(s.cx - 26, s.y + 30);
+      ctx.lineTo(s.cx + 26, s.y + 30);
+      ctx.lineTo(s.cx + 16, s.y + 12);
+      ctx.lineTo(s.cx - 16, s.y + 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#f2b134';
+      ctx.beginPath();
+      ctx.arc(s.cx, s.y + 14, 6, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#2e7f7b';
       rr(ctx, s.cx - 58, s.y + 32, 116, 42, 8);
       ctx.fill();
       ctx.fillStyle = '#ffe9b8';
       ctx.font = '700 15px system-ui, sans-serif';
       ctx.fillText('SAJI  →', s.cx, s.y + 54);
+      // Warm glow over the pass, tinting the panel.
+      ctx.fillStyle = 'rgba(242,177,52,0.16)';
+      ctx.beginPath();
+      ctx.moveTo(s.cx - 30, s.y + 10);
+      ctx.lineTo(s.cx + 30, s.y + 10);
+      ctx.lineTo(s.cx + 72, s.y + 76);
+      ctx.lineTo(s.cx - 72, s.y + 76);
+      ctx.closePath();
+      ctx.fill();
+      // Service bell, bigger, with a highlight.
       ctx.fillStyle = '#f2b134';
       ctx.beginPath();
-      ctx.arc(s.cx + 44, s.y + 40, 8, 0, Math.PI * 2);
+      ctx.arc(s.cx + 44, s.y + 40, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffe9b8';
+      ctx.beginPath();
+      ctx.arc(s.cx + 41, s.y + 37, 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#3b2a1a';
-      ctx.fillRect(s.cx + 42, s.y + 32, 4, 8);
+      ctx.fillRect(s.cx + 42, s.y + 30, 4, 10);
+      // Stack of clean plates waiting on the counter top.
+      ctx.fillStyle = '#fdfbf6';
+      ctx.beginPath();
+      ctx.ellipse(s.cx - 52, s.y + 16, 13, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e8e0cc';
+      ctx.beginPath();
+      ctx.ellipse(s.cx - 52, s.y + 12, 13, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 }
@@ -637,11 +894,28 @@ function drawChef(ctx, world) {
   const y = chef.y + bob * 0.3;
   ctx.save();
   ctx.translate(x, y);
-  ctx.scale(1.18, 1.18);
+  ctx.scale(1.55, 1.55);
   ctx.translate(-x, -y);
   ctx.fillStyle = 'rgba(0,0,0,0.22)';
   ctx.beginPath();
   ctx.ellipse(x, chef.y + 32, 30, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Shoes.
+  ctx.fillStyle = '#3b2a1a';
+  ctx.beginPath();
+  ctx.ellipse(x - 11, y + 30, 9, 5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 11, y + 30, 9, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Arms: short sleeves at the sides, hands below them.
+  ctx.fillStyle = '#2e7f7b';
+  rr(ctx, x - 28, y - 4, 10, 24, 5);
+  ctx.fill();
+  rr(ctx, x + 18, y - 4, 10, 24, 5);
+  ctx.fill();
+  ctx.fillStyle = '#f2c184';
+  ctx.beginPath();
+  ctx.arc(x - 23, y + 22, 5, 0, Math.PI * 2);
+  ctx.arc(x + 23, y + 22, 5, 0, Math.PI * 2);
   ctx.fill();
   // Body: teal shirt + white apron. Drawn big on purpose: the chef is
   // the game's hero and must read at a glance when the frame shrinks.
@@ -650,6 +924,19 @@ function drawChef(ctx, world) {
   ctx.fill();
   ctx.fillStyle = '#fdfbf6';
   rr(ctx, x - 15, y + 3, 31, 28, 7);
+  ctx.fill();
+  // Apron pocket with a tiny chili emblem.
+  ctx.strokeStyle = '#c9b48a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x - 9, y + 12, 18, 12);
+  drawFood(ctx, 'cabai', x, y + 18, 5, 'ready');
+  // Red neckerchief under the chin.
+  ctx.fillStyle = '#d94f3d';
+  ctx.beginPath();
+  ctx.moveTo(x - 10, y - 8);
+  ctx.lineTo(x + 10, y - 8);
+  ctx.lineTo(x, y + 4);
+  ctx.closePath();
   ctx.fill();
   // Head + chef hat.
   ctx.fillStyle = '#f2c184';
@@ -663,6 +950,9 @@ function drawChef(ctx, world) {
   ctx.arc(x - 9, y - 42, 10, 0, Math.PI * 2);
   ctx.arc(x + 9, y - 42, 10, 0, Math.PI * 2);
   ctx.fill();
+  // Hat band.
+  ctx.fillStyle = '#2e7f7b';
+  ctx.fillRect(x - 18, y - 34, 36, 5);
   // Eyes look the way the chef faces.
   const ex = chef.dir === 'left' ? -5 : chef.dir === 'right' ? 5 : 0;
   ctx.fillStyle = '#2b1d12';
@@ -670,16 +960,24 @@ function drawChef(ctx, world) {
   ctx.arc(x - 6 + ex, y - 21, 2.2, 0, Math.PI * 2);
   ctx.arc(x + 6 + ex, y - 21, 2.2, 0, Math.PI * 2);
   ctx.fill();
-  // Carried item floats above the hat, clear of it.
+  // Smile.
+  ctx.strokeStyle = '#2b1d12';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x + ex * 0.5, y - 16, 5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  // Carried item rides in the chef's hand at his side — clear of the
+  // counter labels above him.
   if (world.carrying) {
-    const cy = y - 58 + Math.sin(world.elapsed * 5) * 2;
+    const hx = x + 30 + Math.sin(world.elapsed * 5) * 1.5;
+    const hy = y + 14;
     if (world.carrying.kind === 'plate') {
-      drawPlate(ctx, x, cy, 20);
+      drawPlate(ctx, hx, hy, 16);
       world.carrying.items.forEach((ing, i) => {
-        drawFood(ctx, ing, x - 9 + (i % 2) * 18, cy - 3 + Math.floor(i / 2) * 11, 8, 'ready');
+        drawFood(ctx, ing, hx - 8 + (i % 2) * 16, hy - 3 + Math.floor(i / 2) * 10, 8, 'ready');
       });
     } else {
-      drawFood(ctx, world.carrying.ing, x, cy, 16, world.carrying.state);
+      drawFood(ctx, world.carrying.ing, hx, hy, 14, world.carrying.state);
     }
   }
   ctx.restore();
@@ -733,7 +1031,7 @@ function drawPicker(ctx, world) {
     rr(ctx, bx, PICKER.y, PICKER.w, PICKER.h, 8);
     ctx.fill();
     ctx.fillStyle = '#fff3d6';
-    drawFood(ctx, ing.id, bx + PICKER.w / 2, PICKER.y + 20, 13, ing.prep === 'none' ? 'ready' : 'raw');
+    drawFood(ctx, ing.id, bx + PICKER.w / 2, PICKER.y + 20, 14, ing.prep === 'none' ? 'ready' : 'raw');
     ctx.font = '700 11px system-ui, sans-serif';
     ctx.fillStyle = '#ffe9b8';
     ctx.fillText(ing.short, bx + PICKER.w / 2, PICKER.y + 42);
@@ -758,7 +1056,7 @@ function drawPicker(ctx, world) {
       ctx.fillText('PIRING SIAP', sx + 75, PICKER.y + 34);
     } else {
       const ing = INGREDIENT_BY_ID[world.carrying.ing];
-      drawFood(ctx, ing.id, sx + 30, PICKER.y + 34, 13, world.carrying.state);
+      drawFood(ctx, ing.id, sx + 30, PICKER.y + 34, 14, world.carrying.state);
       ctx.fillStyle = '#ffe9b8';
       ctx.font = '700 13px system-ui, sans-serif';
       ctx.textAlign = 'left';
