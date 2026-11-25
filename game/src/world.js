@@ -51,7 +51,7 @@
 
   function stageLabel(g) {
     switch (g.stage) {
-      case 'empty': return 'WAJAN KOSONG';
+      case 'empty': return 'TUANG ADONAN';
       case 'cooking': return 'MASAK ' + Math.floor(g.cook * 100) + '%';
       case 'needs-butter': return 'MASAK! + MENTEGA';
       case 'buttering': return 'MENTEGA MELELEH';
