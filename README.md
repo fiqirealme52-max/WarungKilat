@@ -4,53 +4,33 @@
 [![Rank](https://make.fun/badge/best-cooking-game-20261125-0137/fiqirealme52-max/WarungKilat/rank.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
 [![Reward](https://make.fun/badge/best-cooking-game-20261125-0137/fiqirealme52-max/WarungKilat/reward.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
 
-A fast Indonesian street-food cooking game. One chef, one shift of three
-minutes, a kitchen full of hungry tickets: take ingredients from the crate,
-chop them on the board, cook them on the stove, stack them on a plate, and
-serve before patience runs out. Five original recipes, combos, tips, burnt
-food, and a rush that keeps growing.
+A fast Indonesian street-food cooking game: one chef, one griddle, one shift
+of three minutes at a golden-hour martabak cart. Tickets come in with hungry
+customers' faces on them. Pour the batter, cook it golden, melt the butter,
+add exactly the two toppings each ticket asks for, fold, cut, and serve
+before patience runs out. Combos, tips, burnt patience, and a rush that keeps
+growing.
 
 ## How to play
 
-- **WASD / arrow keys** — walk the chef. **Click** the floor to walk there,
-  click a station to walk to it and use it.
-- **E / Space** — use the station in front of you.
-- **1–9 or click the picker bar** — choose which ingredient to take from
-  the crate.
-- **P** — pause. **R** — restart after a shift ends.
+- **Mouse** — click the batter bowl, the butter, a topping jar, or the buttons.
+- **1** — pour batter. **2** — add butter. **3–8** — add a topping.
+- **F** — fold the martabak. **Space** — cut to the ready plate, then serve.
+- **B** — throw a ruined martabak in the bin. **R** — restart after a shift.
+- A topping no ticket wants marks the martabak wrong — bin it and start over.
+- Serve the oldest matching ticket: the more patience left, the bigger the tip.
 
-The loop: crate → board (chop) or stove (cook) → assembly table (plate) →
-serving window. Serve fast for a tip; serve back-to-back for a combo. Leave
-a finished dish on the stove too long and it burns — throw it away.
+## Files
 
-## Run it
+- `game/index.html` — the game, plain static files, no network requests.
+- `game/src/` — one job per file: `config` (layout + palette), `recipes`
+  (toppings, orders, customers), `random` (seeded RNG), `world` (rules),
+  `render` (all canvas art), `input` (mouse + keyboard), `shots`
+  (deterministic screenshots + self-test), `audio` (synth blips), `main` (boot).
+- `screenshots/` — four real renders of the game in a browser.
+- `main.ts` — hands the game in (copies `game/` + `screenshots/`, writes the
+  dossier with the vendored make.fun library).
 
-Static files, no build step, no network:
+## License
 
-```sh
-python3 -m http.server 8080 --directory game
-# open http://localhost:8080
-```
-
-Screenshots are staged by the game itself: open
-`game/index.html?shot=cover&seed=7` (or `start`, `cook`, `serve`) — the
-scene is built by the real game code, so the frame is a real render.
-
-## Layout
-
-- `game/index.html` — canvas page, loads `src/main.js`
-- `game/src/config.js` — sizes, stations, palette
-- `game/src/recipes.js` — 9 ingredients, 5 recipes
-- `game/src/random.js` — seeded RNG
-- `game/src/input.js` — keyboard + mouse
-- `game/src/world.js` — state and rules
-- `game/src/render.js` — all drawing, in code
-- `game/src/shots.js` — deterministic screenshot scenes
-- `game/src/audio.js` — synthesized blips (WebAudio, no files)
-- `game/src/main.js` — boot + frame loop
-- `main.ts` — hand-in program (copies `game/` + `screenshots/`, writes
-  `dossier.json`)
-- `screenshots/` — 4 real renders of the game
-
-Entry for the make.fun bounty
-[best-cooking-game-20261125-0137](https://make.fun/bounty/best-cooking-game-20261125-0137).
+MIT — see `LICENSE`.
