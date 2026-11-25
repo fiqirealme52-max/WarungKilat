@@ -1,43 +1,69 @@
-// Warung Kilat — boot and frame loop.
-// Normal play runs on requestAnimationFrame. With ?shot=<name>&seed=<n>
-// in the URL the game stages one deterministic scene and draws it once,
-// which is how the screenshots are taken: same URL, same pixels.
-// window.__warung exposes the live world for play-testing.
-import { VIEW } from './config.js';
-import { createWorld, resetWorld, update } from './world.js';
-import { attachInput, createInput, endFrame } from './input.js';
-import { render } from './render.js';
-import { stageShot } from './shots.js';
-import { playSound } from './audio.js';
+// Warung Kilat — boot + loop utama. ?shot=... render sekali dengan waktu
+// tetap (deterministik untuk screenshot); tanpa shot, loop rAF biasa.
+(function () {
+  'use strict';
 
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-canvas.width = VIEW.width;
-canvas.height = VIEW.height;
+  function qs(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
 
-const params = new URLSearchParams(window.location.search);
-const shotName = params.get('shot');
-const seed = Number.parseInt(params.get('seed') || '7', 10) || 7;
+  function boot() {
+    var canvas = document.getElementById('game');
+    var ctx = canvas.getContext('2d');
+    var shot = qs('shot');
+    var seed = parseInt(qs('seed') || '1', 10) || 1;
+    var game;
 
-const world = createWorld(seed);
-const input = createInput();
-attachInput(input, canvas);
-window.__warung = { world, input };
+    if (shot && window.WK_SHOTS.SHOTS[shot]) {
+      game = window.WK_SHOTS.SHOTS[shot]();
+      var frozen = 2.0; // waktu animasi tetap: api + uap sama di tiap run
+      window.WK_RENDER.render(ctx, game, frozen);
+      window.WK = { game: game, shot: shot };
+      return;
+    }
 
-if (shotName) {
-  // Screenshot mode: stage the scene and paint exactly one frame.
-  stageShot(shotName, world);
-  render(ctx, world);
-} else {
-  let last = performance.now();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-    update(world, input, dt, playSound);
-    render(ctx, world);
-    endFrame(input);
+    if (qs('selftest') === '1') {
+      var res = window.WK_SHOTS.selfTest();
+      var pre = document.createElement('pre');
+      pre.id = 'selftest';
+      pre.textContent = JSON.stringify(res);
+      document.body.appendChild(pre);
+      window.WK = { selftest: res };
+      return;
+    }
+
+    game = window.WK_WORLD.newGame(seed);
+    window.WK = { game: game };
+    var last = performance.now();
+    var t0 = last;
+
+    function frame(now) {
+      var dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      var time = (now - t0) / 1000;
+      window.WK_WORLD.tick(game, dt);
+      window.WK_RENDER.render(ctx, game, time);
+      requestAnimationFrame(frame);
+    }
+
+    canvas.addEventListener('click', function (ev) {
+      var r = canvas.getBoundingClientRect();
+      var x = (ev.clientX - r.left) * (1280 / r.width);
+      var y = (ev.clientY - r.top) * (720 / r.height);
+      var ok = window.WK_INPUT.click(game, x, y);
+      if (ok && window.WK_AUDIO) window.WK_AUDIO.click();
+    });
+    window.addEventListener('keydown', function (ev) {
+      if (ev.code === 'Space' || ev.code === 'ArrowUp' || ev.code === 'ArrowDown') ev.preventDefault();
+      var ok = window.WK_INPUT.key(game, ev.code);
+      if (ok && window.WK_AUDIO) window.WK_AUDIO.click();
+      if (!ok && game.phase === 'playing' && window.WK_AUDIO) window.WK_AUDIO.error();
+    });
+
     requestAnimationFrame(frame);
   }
-  // The title screen waits for Enter; start the loop immediately.
-  requestAnimationFrame(frame);
-}
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
