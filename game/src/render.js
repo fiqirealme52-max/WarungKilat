@@ -49,6 +49,17 @@ function glossTop(ctx, x, y, w, h, r, alpha) {
   ctx.restore();
 }
 
+// --- sharpness helpers: dark ink outlines + crisp detail ------------------
+// Every sprite gets a firm dark edge so shapes never melt into the
+// background at contact-sheet size. Deterministic (no randomness).
+const INK = '#3a2413';
+function ol(ctx, color, lw) {
+  ctx.strokeStyle = color || INK;
+  ctx.lineWidth = lw || 2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+}
+
 function fmt(n) {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
@@ -85,11 +96,20 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.ellipse(0, r * 0.15, r, r * 0.72, 0, Math.PI, 0);
     ctx.fill();
     // Outline so the pale mound reads on the white ticket cards.
-    ctx.strokeStyle = '#cbb98d';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#8a6d3b';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.ellipse(0, r * 0.15, r, r * 0.72, 0, Math.PI, 0);
     ctx.stroke();
+    // Rice grains: short dark arcs on the mound so it reads as grains,
+    // not a smooth blob.
+    ctx.strokeStyle = '#b8a06a';
+    ctx.lineWidth = 1.5;
+    for (const [gx, gy, ga] of [[-0.35, 0.05, 0.3], [0.05, -0.05, -0.4], [0.4, 0.1, 0.5], [-0.1, 0.3, 0.1]]) {
+      ctx.beginPath();
+      ctx.arc(gx * r, gy * r, r * 0.16, ga, ga + Math.PI * 0.7);
+      ctx.stroke();
+    }
     ctx.fillStyle = '#e3d9bd';
     for (let i = 0; i < 5; i += 1) {
       ctx.beginPath();
@@ -115,6 +135,19 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.beginPath();
     ctx.ellipse(-r * 0.1, -r * 0.12, r * 0.62, r * 0.42, -0.3, 0, Math.PI * 2);
     ctx.fill();
+    // Dark ink edge + fibre strokes so the piece reads as fried chicken.
+    ol(ctx, '#7a3f0e', 2.5);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 0.9, r * 0.62, -0.3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = '#b86e1e';
+    ctx.lineWidth = 1.5;
+    for (const [fx, fy] of [[-0.3, -0.1], [0.1, 0.05], [0.3, -0.2]]) {
+      ctx.beginPath();
+      ctx.moveTo(fx * r - r * 0.18, fy * r);
+      ctx.quadraticCurveTo(fx * r, fy * r - r * 0.14, fx * r + r * 0.18, fy * r);
+      ctx.stroke();
+    }
     // Crispy highlight on the top edge.
     ctx.fillStyle = 'rgba(255,235,190,0.8)';
     ctx.beginPath();
@@ -144,6 +177,16 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.moveTo(-r * 0.6, -r * 0.5);
     ctx.quadraticCurveTo(-r * 0.2, -r * 0.72, r * 0.3, -r * 0.48);
     ctx.stroke();
+    // Dark edge strands under the noodles so the nest separates from
+    // the plate and the strands stay distinct.
+    ctx.strokeStyle = '#a87a1e';
+    ctx.lineWidth = r * 0.1;
+    for (const dy of [-0.62, 0.62]) {
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.7, dy * r);
+      ctx.quadraticCurveTo(0, dy * r + r * 0.28, r * 0.75, dy * r);
+      ctx.stroke();
+    }
   } else if (ingId === 'telur') {
     ctx.fillStyle = rg(ctx, -r * 0.15, -r * 0.2, r * 0.1, r, [[0, '#ffffff'], [0.7, '#fffdf4'], [1, '#e9dcc0']]);
     ctx.beginPath();
@@ -153,13 +196,22 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.beginPath();
     ctx.arc(r * 0.1, -r * 0.05, r * 0.42, 0, Math.PI * 2);
     ctx.fill();
+    ol(ctx, '#c98a2e', 2);
+    ctx.beginPath();
+    ctx.arc(r * 0.1, -r * 0.05, r * 0.42, 0, Math.PI * 2);
+    ctx.stroke();
+    // Crisp white edge so the egg never melts into a white plate.
+    ol(ctx, '#c9b48a', 2);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 0.95, r * 0.7, 0.2, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
     ctx.beginPath();
     ctx.arc(r * 0.02, -r * 0.16, r * 0.1, 0, Math.PI * 2);
     ctx.fill();
   } else if (ingId === 'tahu') {
-    ctx.strokeStyle = '#d9b96a';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#8a5a2b';
+    ctx.lineWidth = 2.5;
     for (const [dx, dy] of [[-0.35, 0.1], [0.35, -0.15]]) {
       ctx.fillStyle = lg(ctx, dx * r - r * 0.42, dy * r - r * 0.42, dx * r + r * 0.42, dy * r + r * 0.42, [[0, '#fbf0d4'], [1, '#dfc389']]);
       ctx.beginPath();
@@ -168,12 +220,16 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.stroke();
     }
     // Grill marks on each cube.
-    ctx.strokeStyle = '#c98a2e';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#a86a1e';
+    ctx.lineWidth = 2.5;
     for (const [dx, dy] of [[-0.35, 0.1], [0.35, -0.15]]) {
       ctx.beginPath();
       ctx.moveTo(dx * r - r * 0.3, dy * r - r * 0.2);
       ctx.lineTo(dx * r + r * 0.3, dy * r + r * 0.2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(dx * r - r * 0.3, dy * r + r * 0.2);
+      ctx.lineTo(dx * r + r * 0.3, dy * r - r * 0.2);
       ctx.stroke();
     }
     // Top-face light on the front cube.
@@ -188,6 +244,10 @@ export function drawFood(ctx, ingId, x, y, r, state) {
       ctx.beginPath();
       ctx.ellipse(0, 0, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
       ctx.fill();
+      ol(ctx, '#1f5a2a', 2);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
+      ctx.stroke();
       ctx.restore();
     }
     ctx.strokeStyle = '#2f7d3d';
@@ -217,6 +277,13 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     ctx.moveTo(-r * 0.4, -r * 0.45);
     ctx.quadraticCurveTo(-r * 0.1, -r * 0.1, r * 0.2, -r * 0.4);
     ctx.stroke();
+    // Dark edge under the chili so the red never bleeds into the board.
+    ctx.strokeStyle = '#7a1212';
+    ctx.lineWidth = r * 0.1;
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.7, -r * 0.2);
+    ctx.quadraticCurveTo(0, r * 0.85, r * 0.72, -r * 0.32);
+    ctx.stroke();
   } else if (ingId === 'teh') {
     ctx.fillStyle = lg(ctx, -r * 0.55, -r * 0.6, r * 0.55, r * 0.7, [[0, '#e8b45a'], [0.5, '#c98a2e'], [1, '#96621a']]);
     rr(ctx, -r * 0.55, -r * 0.6, r * 1.1, r * 1.3, r * 0.2);
@@ -229,8 +296,8 @@ export function drawFood(ctx, ingId, x, y, r, state) {
     rr(ctx, -r * 0.55, -r * 0.6, r * 1.1, r * 1.3, r * 0.2);
     ctx.stroke();
   } else if (ingId === 'es') {
-    ctx.strokeStyle = '#5aa8dd';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#2f6da8';
+    ctx.lineWidth = 2.5;
     for (const [dx, dy, rot] of [[-0.3, 0.15, 0.2], [0.32, -0.15, -0.3]]) {
       ctx.save();
       ctx.translate(dx * r, dy * r);
@@ -268,6 +335,11 @@ function drawPlate(ctx, x, y, r) {
   ctx.beginPath();
   ctx.ellipse(x, y, r, r * 0.78, 0, 0, Math.PI * 2);
   ctx.fill();
+  // Firm dark rim so the white plate never melts into the steel inlay.
+  ol(ctx, '#8a6d3b', 2.5);
+  ctx.beginPath();
+  ctx.ellipse(x, y, r, r * 0.78, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.strokeStyle = '#c9b48a';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -296,6 +368,10 @@ function drawRoom(ctx, world) {
       const base = (tx + ty) % 2 === 0 ? ['#eab170', '#cf8a4c'] : ['#df9d59', '#c07f42'];
       ctx.fillStyle = lg(ctx, tx * 80, 300 + ty * 52.5, tx * 80, 300 + (ty + 1) * 52.5, [[0, base[0]], [1, base[1]]]);
       ctx.fillRect(tx * 80 + 1, 300 + ty * 52.5 + 1, 78, 50.5);
+      // Crisp grout line so every tile reads as its own tile.
+      ctx.strokeStyle = 'rgba(59,42,26,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(tx * 80 + 1, 300 + ty * 52.5 + 1, 78, 50.5);
     }
   }
   ctx.fillStyle = rg(ctx, 180, 420, 0, 420, [[0, 'rgba(255,236,180,0.20)'], [1, 'rgba(255,236,180,0)']]);
@@ -317,8 +393,9 @@ function drawRoom(ctx, world) {
     ctx.fill();
   }
   ctx.restore();
-  ctx.fillStyle = 'rgba(0,0,0,0.08)';
-  ctx.fillRect(0, 296, width, 8);
+  // Hard edge where wall meets floor: a crisp shadow line, not a blur.
+  ctx.fillStyle = 'rgba(59,42,26,0.4)';
+  ctx.fillRect(0, 298, width, 3);
   // Wall band: subway-tile backsplash behind the counter row, with a
   // teal trim at the bottom — the wall must read as a kitchen, not a
   // flat band. The menu board and window are drawn over it later.
@@ -331,6 +408,10 @@ function drawRoom(ctx, world) {
       const x0 = tx * 46 + off + 1;
       ctx.fillStyle = lg(ctx, x0, ty, x0, ty + 19, [[0, row === 0 ? '#fffaf0' : '#f8efdb'], [1, row === 0 ? '#f3e7c8' : '#e6d5ae']]);
       ctx.fillRect(x0, ty, 44, 19);
+      // Crisp grout between subway tiles.
+      ctx.strokeStyle = 'rgba(59,42,26,0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x0, ty, 44, 19);
       // Bevel: a light line under each tile catches the lamp light.
       ctx.fillStyle = 'rgba(255,255,255,0.55)';
       ctx.fillRect(x0, ty + 18, 44, 1);
@@ -341,6 +422,8 @@ function drawRoom(ctx, world) {
   ctx.fillStyle = lg(ctx, 390, 156, 390, 192, [[0, '#5a4230'], [0.5, '#3b2a1a'], [1, '#241608']]);
   rr(ctx, 390, 156, 500, 36, 8);
   ctx.fill();
+  ol(ctx, '#1c0f04', 3);
+  ctx.stroke();
   glossTop(ctx, 390, 156, 500, 36, 8, 0.16);
   ctx.fillStyle = '#ffe9b8';
   ctx.font = '700 16px system-ui, sans-serif';
@@ -351,6 +434,8 @@ function drawRoom(ctx, world) {
   ctx.fillStyle = lg(ctx, 60, 164, 60, 190, [[0, '#d4f0fc'], [1, '#8fc8e8']]);
   rr(ctx, 60, 164, 150, 26, 6);
   ctx.fill();
+  ol(ctx, '#5a3413', 2.5);
+  ctx.stroke();
   glossTop(ctx, 60, 164, 150, 26, 6, 0.35);
   ctx.strokeStyle = '#8a5a2b';
   ctx.lineWidth = 2;
@@ -407,6 +492,10 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.arc(1170, 108, 26, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#1c0f04', 3);
+  ctx.beginPath();
+  ctx.arc(1170, 108, 26, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.fillStyle = rg(ctx, 1166, 104, 0, 24, [[0, '#ffffff'], [1, '#e6dcc2']]);
   ctx.beginPath();
   ctx.arc(1170, 108, 22, 0, Math.PI * 2);
@@ -427,6 +516,8 @@ function drawRoom(ctx, world) {
   ctx.fillStyle = lg(ctx, 958, 72, 958, 144, [[0, '#a06a35'], [1, '#7a4a22']]);
   rr(ctx, 958, 72, 130, 72, 6);
   ctx.fill();
+  ol(ctx, '#4a2c10', 3);
+  ctx.stroke();
   ctx.fillStyle = lg(ctx, 964, 78, 964, 138, [[0, '#fff8e2'], [1, '#f0dfb8']]);
   rr(ctx, 964, 78, 118, 60, 4);
   ctx.fill();
@@ -469,6 +560,10 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(640, 520, 250, 58, 0, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#5e2418', 3);
+  ctx.beginPath();
+  ctx.ellipse(640, 520, 250, 58, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.strokeStyle = '#e8b45a';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -485,6 +580,10 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(300, 440, 150, 42, 0, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#5e2418', 3);
+  ctx.beginPath();
+  ctx.ellipse(300, 440, 150, 42, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.strokeStyle = '#e8b45a';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -497,6 +596,10 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(1060, 385, 110, 30, 0, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#5e2418', 3);
+  ctx.beginPath();
+  ctx.ellipse(1060, 385, 110, 30, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.strokeStyle = '#e8b45a';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -510,6 +613,10 @@ function drawRoom(ctx, world) {
     ctx.beginPath();
     ctx.ellipse(sx, sy, 30, 22, 0, 0, Math.PI * 2);
     ctx.fill();
+    ol(ctx, '#8a6d3b', 2.5);
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, 30, 22, 0, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.strokeStyle = '#b09a68';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -522,6 +629,10 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(1105, 545, 62, 20, 0, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#3a220c', 2.5);
+  ctx.beginPath();
+  ctx.ellipse(1105, 545, 62, 20, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.fillStyle = lg(ctx, 1100, 545, 1110, 587, [[0, '#a06a35'], [1, '#6e451f']]);
   ctx.fillRect(1100, 545, 10, 42);
   ctx.fillStyle = rg(ctx, 1105, 534, 0, 54, [[0, '#ffffff'], [0.7, '#fdfbf6'], [1, '#ddd2b8']]);
@@ -533,10 +644,16 @@ function drawRoom(ctx, world) {
     ctx.fillStyle = lg(ctx, cx - 16, cy - 8, cx + 16, cy + 26, [[0, light], [0.55, shirt], [1, dark]]);
     rr(ctx, cx - 16, cy - 8, 32, 34, 10);
     ctx.fill();
+    ol(ctx, '#14100c', 2);
+    ctx.stroke();
     ctx.fillStyle = rg(ctx, cx - 3, cy - 22, 0, 14, [[0, '#f7cf9a'], [1, '#d99a5c']]);
     ctx.beginPath();
     ctx.arc(cx, cy - 18, 12, 0, Math.PI * 2);
     ctx.fill();
+    ol(ctx, '#8a5a2b', 2);
+    ctx.beginPath();
+    ctx.arc(cx, cy - 18, 12, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.fillStyle = '#2b1d12';
     ctx.beginPath();
     ctx.arc(cx, cy - 18, 12, Math.PI, 0);
@@ -553,6 +670,10 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.ellipse(400, 545, 46, 15, 0, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#3a220c', 2.5);
+  ctx.beginPath();
+  ctx.ellipse(400, 545, 46, 15, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.fillStyle = lg(ctx, 396, 545, 404, 579, [[0, '#a06a35'], [1, '#6e451f']]);
   ctx.fillRect(396, 545, 8, 34);
   ctx.fillStyle = rg(ctx, 400, 535, 0, 40, [[0, '#ffffff'], [0.7, '#fdfbf6'], [1, '#ddd2b8']]);
@@ -563,10 +684,16 @@ function drawRoom(ctx, world) {
   ctx.fillStyle = lg(ctx, 318, 552, 346, 582, [[0, '#9a6ab8'], [0.55, '#7a4a9e'], [1, '#5a3578']]);
   rr(ctx, 318, 552, 28, 30, 9);
   ctx.fill();
+  ol(ctx, '#2e1a44', 2);
+  ctx.stroke();
   ctx.fillStyle = rg(ctx, 329, 540, 0, 13, [[0, '#f7cf9a'], [1, '#d99a5c']]);
   ctx.beginPath();
   ctx.arc(332, 544, 11, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#8a5a2b', 2);
+  ctx.beginPath();
+  ctx.arc(332, 544, 11, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.fillStyle = '#2b1d12';
   ctx.beginPath();
   ctx.arc(332, 544, 11, Math.PI, 0);
@@ -588,9 +715,14 @@ function drawStations(ctx, world) {
     ctx.fillStyle = lg(ctx, s.x, s.y, s.x, s.y + s.h, [[0, '#a06a35'], [0.55, '#8a5a2b'], [1, '#6e451f']]);
     rr(ctx, s.x, s.y, s.w, s.h, 10);
     ctx.fill();
+    // Firm dark edge around the whole counter so each station separates.
+    ol(ctx, '#3a220c', 3);
+    ctx.stroke();
     ctx.fillStyle = lg(ctx, s.x, s.y, s.x, s.y + 26, [[0, '#cf9450'], [0.6, '#b07a3e'], [1, '#96621a']]);
     rr(ctx, s.x, s.y, s.w, 26, 10);
     ctx.fill();
+    ol(ctx, '#5a3413', 2);
+    ctx.stroke();
     glossTop(ctx, s.x, s.y, s.w, 26, 10, 0.28);
     ctx.fillStyle = lg(ctx, s.x, s.y + 26, s.x, s.y + 29, [[0, '#5a3413'], [1, '#6e451f']]);
     ctx.fillRect(s.x, s.y + 26, s.w, 3);
@@ -619,6 +751,9 @@ function drawStations(ctx, world) {
     ctx.fillStyle = '#3b2a1a';
     rr(ctx, s.x + 14, s.y + s.h - 24, s.w - 28, 18, 6);
     ctx.fill();
+    ctx.strokeStyle = '#f2b134';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
     ctx.fillStyle = '#ffe9b8';
     ctx.font = '700 12px system-ui, sans-serif';
     ctx.textAlign = 'center';
@@ -631,6 +766,8 @@ function drawStations(ctx, world) {
       ctx.fillStyle = lg(ctx, s.cx - 28, s.y + 34, s.cx + 28, s.y + 76, [[0, '#9a9aa2'], [0.45, '#6a6a72'], [1, '#3f3f46']]);
       rr(ctx, s.cx - 28, s.y + 34, 56, 42, 8);
       ctx.fill();
+      ol(ctx, '#1c1c20', 2.5);
+      ctx.stroke();
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.fillRect(s.cx - 28, s.y + 38, 10, 34);
       ctx.fillStyle = '#4a4a52';
@@ -658,6 +795,8 @@ function drawStations(ctx, world) {
       ctx.fillStyle = lg(ctx, s.cx - 62, s.y + 40, s.cx + 62, s.y + 76, [[0, '#96683a'], [1, '#5e3a18']]);
       rr(ctx, s.cx - 62, s.y + 40, 124, 36, 6);
       ctx.fill();
+      ol(ctx, '#3a220c', 2.5);
+      ctx.stroke();
       glossTop(ctx, s.cx - 62, s.y + 40, 124, 36, 6, 0.2);
       ctx.fillStyle = lg(ctx, s.cx - 58, s.y + 36, s.cx + 58, s.y + 48, [[0, '#5a3413'], [1, '#3a220c']]);
       rr(ctx, s.cx - 58, s.y + 36, 116, 12, 6);
@@ -696,6 +835,8 @@ function drawStations(ctx, world) {
       ctx.fillStyle = lg(ctx, s.cx - 70, s.y + 30, s.cx + 70, s.y + 78, [[0, '#dcb06e'], [0.55, '#c99a5b'], [1, '#9a7138']]);
       rr(ctx, s.cx - 70, s.y + 30, 140, 48, 10);
       ctx.fill();
+      ol(ctx, '#5a3413', 2.5);
+      ctx.stroke();
       glossTop(ctx, s.cx - 70, s.y + 30, 140, 48, 10, 0.25);
       ctx.fillStyle = '#a87c3f';
       ctx.beginPath();
@@ -767,6 +908,10 @@ function drawStations(ctx, world) {
         ctx.beginPath();
         ctx.ellipse(bx, s.y + 56, 40, 15, 0, 0, Math.PI * 2);
         ctx.fill();
+        ol(ctx, '#0f0f12', 2.5);
+        ctx.beginPath();
+        ctx.ellipse(bx, s.y + 56, 40, 15, 0, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.strokeStyle = '#1c1c20';
         ctx.lineWidth = 2;
         for (let g = -1; g <= 1; g += 1) {
@@ -790,6 +935,10 @@ function drawStations(ctx, world) {
           ctx.beginPath();
           ctx.ellipse(bx, s.y + 52, 34, 13, 0, 0, Math.PI * 2);
           ctx.fill();
+          ol(ctx, '#141416', 2.5);
+          ctx.beginPath();
+          ctx.ellipse(bx, s.y + 52, 34, 13, 0, 0, Math.PI * 2);
+          ctx.stroke();
           ctx.fillStyle = rg(ctx, bx - 8, s.y + 40, 0, 32, [[0, '#8a8a94'], [1, '#4a4a52']]);
           ctx.beginPath();
           ctx.ellipse(bx, s.y + 47, 30, 11, 0, 0, Math.PI * 2);
@@ -884,6 +1033,8 @@ function drawStations(ctx, world) {
       ctx.fillStyle = lg(ctx, s.cx - 82, s.y + 32, s.cx + 82, s.y + 74, [[0, '#e6eaee'], [0.55, '#c9ced3'], [1, '#9aa0a6']]);
       rr(ctx, s.cx - 82, s.y + 32, 164, 42, 8);
       ctx.fill();
+      ol(ctx, '#5a6066', 2.5);
+      ctx.stroke();
       glossTop(ctx, s.cx - 82, s.y + 32, 164, 42, 8, 0.35);
       ctx.strokeStyle = 'rgba(255,255,255,0.6)';
       ctx.lineWidth = 1;
@@ -939,6 +1090,8 @@ function drawStations(ctx, world) {
       ctx.lineTo(s.cx - 16, s.y + 12);
       ctx.closePath();
       ctx.fill();
+      ol(ctx, '#7a1e12', 2.5);
+      ctx.stroke();
       ctx.fillStyle = '#f2b134';
       ctx.beginPath();
       ctx.arc(s.cx, s.y + 14, 6, 0, Math.PI * 2);
@@ -946,6 +1099,8 @@ function drawStations(ctx, world) {
       ctx.fillStyle = '#2e7f7b';
       rr(ctx, s.cx - 58, s.y + 32, 116, 42, 8);
       ctx.fill();
+      ol(ctx, '#14524e', 2.5);
+      ctx.stroke();
       ctx.fillStyle = '#ffe9b8';
       ctx.font = '700 15px system-ui, sans-serif';
       ctx.fillText('SAJI  →', s.cx, s.y + 54);
@@ -996,6 +1151,8 @@ function drawTickets(ctx, world) {
     ctx.fillStyle = lg(ctx, x, y, x, y + TICKET.h, [[0, '#fffdf4'], [1, '#efe4c4']]);
     rr(ctx, x, y, TICKET.w, TICKET.h, 10);
     ctx.fill();
+    ol(ctx, '#8a6d3b', 2.5);
+    ctx.stroke();
     ctx.restore();
     ctx.fillStyle = recipe.color;
     rr(ctx, x, y, TICKET.w, 26, 10);
@@ -1048,12 +1205,18 @@ function drawChef(ctx, world) {
   ctx.ellipse(x - 11, y + 30, 9, 5, 0, 0, Math.PI * 2);
   ctx.ellipse(x + 11, y + 30, 9, 5, 0, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#1c0f04', 2);
+  ctx.stroke();
   // Arms: short sleeves at the sides, hands below them.
   ctx.fillStyle = lg(ctx, x - 28, y - 4, x + 28, y + 20, [[0, '#3f948d'], [0.55, '#2e7f7b'], [1, '#1f5a56']]);
   rr(ctx, x - 28, y - 4, 10, 24, 5);
   ctx.fill();
+  ol(ctx, '#14524e', 2);
+  ctx.stroke();
   rr(ctx, x + 18, y - 4, 10, 24, 5);
   ctx.fill();
+  ol(ctx, '#14524e', 2);
+  ctx.stroke();
   ctx.fillStyle = rg(ctx, x - 23, y + 20, 0, 6, [[0, '#f9d6a4'], [1, '#dd9c55']]);
   ctx.beginPath();
   ctx.arc(x - 23, y + 22, 5, 0, Math.PI * 2);
@@ -1064,10 +1227,14 @@ function drawChef(ctx, world) {
   ctx.fillStyle = lg(ctx, x - 22, y - 8, x + 22, y + 31, [[0, '#3f948d'], [0.55, '#2e7f7b'], [1, '#1f5a56']]);
   rr(ctx, x - 22, y - 8, 44, 39, 12);
   ctx.fill();
+  ol(ctx, '#14524e', 2.5);
+  ctx.stroke();
   glossTop(ctx, x - 22, y - 8, 44, 39, 12, 0.18);
   ctx.fillStyle = lg(ctx, x - 15, y + 3, x + 16, y + 31, [[0, '#ffffff'], [1, '#e2d8bd']]);
   rr(ctx, x - 15, y + 3, 31, 28, 7);
   ctx.fill();
+  ol(ctx, '#8a6d3b', 2);
+  ctx.stroke();
   // Apron pocket with a tiny chili emblem.
   ctx.strokeStyle = '#c9b48a';
   ctx.lineWidth = 1.5;
@@ -1086,13 +1253,30 @@ function drawChef(ctx, world) {
   ctx.beginPath();
   ctx.arc(x, y - 21, 17, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#8a5a2b', 2.5);
+  ctx.beginPath();
+  ctx.arc(x, y - 21, 17, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.fillStyle = lg(ctx, x - 18, y - 50, x + 18, y - 28, [[0, '#ffffff'], [1, '#ddd2b8']]);
   rr(ctx, x - 18, y - 44, 36, 16, 7);
   ctx.fill();
+  ol(ctx, '#b8ab8a', 2);
+  ctx.stroke();
   ctx.beginPath();
   ctx.arc(x - 9, y - 42, 10, 0, Math.PI * 2);
   ctx.arc(x + 9, y - 42, 10, 0, Math.PI * 2);
   ctx.fill();
+  ol(ctx, '#b8ab8a', 2);
+  ctx.stroke();
+  // Hat folds.
+  ctx.strokeStyle = '#c9b48a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x - 4, y - 46);
+  ctx.quadraticCurveTo(x - 6, y - 38, x - 4, y - 32);
+  ctx.moveTo(x + 5, y - 46);
+  ctx.quadraticCurveTo(x + 7, y - 38, x + 5, y - 32);
+  ctx.stroke();
   // Hat band.
   ctx.fillStyle = '#2e7f7b';
   ctx.fillRect(x - 18, y - 34, 36, 5);
@@ -1103,9 +1287,27 @@ function drawChef(ctx, world) {
   ctx.arc(x - 6 + ex, y - 21, 2.2, 0, Math.PI * 2);
   ctx.arc(x + 6 + ex, y - 21, 2.2, 0, Math.PI * 2);
   ctx.fill();
-  // Smile.
+  // Eyebrows, blush and nose — a face, not a bare smiley.
   ctx.strokeStyle = '#2b1d12';
   ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x - 9 + ex, y - 28);
+  ctx.lineTo(x - 3 + ex, y - 27);
+  ctx.moveTo(x + 3 + ex, y - 27);
+  ctx.lineTo(x + 9 + ex, y - 28);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(217,79,61,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(x - 11 + ex, y - 16, 3.5, 2.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 11 + ex, y - 16, 3.5, 2.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2b1d12';
+  ctx.beginPath();
+  ctx.arc(x + ex * 0.5, y - 19, 1.4, 0, Math.PI * 2);
+  ctx.fill();
+  // Smile.
+  ctx.strokeStyle = '#2b1d12';
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.arc(x + ex * 0.5, y - 16, 5, 0.2, Math.PI - 0.2);
   ctx.stroke();
@@ -1185,6 +1387,8 @@ function drawPicker(ctx, world) {
       : lg(ctx, bx, PICKER.y, bx, PICKER.y + PICKER.h, [[0, '#6e563e'], [1, '#46331f']]);
     rr(ctx, bx, PICKER.y, PICKER.w, PICKER.h, 8);
     ctx.fill();
+    ol(ctx, '#241608', 2);
+    ctx.stroke();
     if (!selected) glossTop(ctx, bx, PICKER.y, PICKER.w, PICKER.h, 8, 0.14);
     ctx.fillStyle = '#fff3d6';
     drawFood(ctx, ing.id, bx + PICKER.w / 2, PICKER.y + 20, 14, ing.prep === 'none' ? 'ready' : 'raw');
@@ -1202,6 +1406,8 @@ function drawPicker(ctx, world) {
   ctx.fillStyle = lg(ctx, sx, PICKER.y, sx, PICKER.y + PICKER.h, [[0, '#6e563e'], [1, '#46331f']]);
   rr(ctx, sx, PICKER.y, 150, PICKER.h, 8);
   ctx.fill();
+  ol(ctx, '#241608', 2);
+  ctx.stroke();
   glossTop(ctx, sx, PICKER.y, 150, PICKER.h, 8, 0.14);
   ctx.fillStyle = '#c9a97a';
   ctx.font = '700 11px system-ui, sans-serif';
@@ -1245,6 +1451,9 @@ function drawPopups(ctx, world) {
   for (const p of world.popups) {
     ctx.globalAlpha = 1 - p.t / p.ttl;
     ctx.font = '800 26px system-ui, sans-serif';
+    ctx.strokeStyle = 'rgba(43,29,18,0.85)';
+    ctx.lineWidth = 5;
+    ctx.strokeText(p.text, p.x, p.y);
     ctx.fillStyle = p.color;
     ctx.fillText(p.text, p.x, p.y);
   }
@@ -1266,6 +1475,9 @@ function drawTitle(ctx, world) {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffe9b8';
   ctx.font = '800 74px system-ui, sans-serif';
+  ctx.strokeStyle = '#3b2a1a';
+  ctx.lineWidth = 3;
+  ctx.strokeText('WARUNG KILAT', 640, 210);
   ctx.fillText('WARUNG KILAT', 640, 210);
   ctx.fillStyle = '#f2b134';
   ctx.font = '700 24px system-ui, sans-serif';
