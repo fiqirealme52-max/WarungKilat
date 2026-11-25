@@ -11,12 +11,13 @@ export const CHEF_RADIUS = 22;
 // The aisle the chef walks in (below the counter row).
 export const AISLE = { x0: 24, x1: 1256, y0: 330, y1: 622 };
 
-// Floor furniture the chef walks around, not through: the dining table
-// (bottom right) and the two rice sacks (bottom left).
+// Floor furniture the chef walks around, not through: the dining tables
+// (bottom right and bottom-centre-left) and the two rice sacks (bottom left).
 export const OBSTACLES = [
   { x0: 988, y0: 508, x1: 1228, y1: 602 },
   { x0: 38, y0: 560, x1: 102, y1: 610 },
   { x0: 98, y0: 575, x1: 162, y1: 622 },
+  { x0: 312, y0: 520, x1: 454, y1: 606 },
 ];
 
 // Counter row: six stations, left to right. Each station is a wooden
