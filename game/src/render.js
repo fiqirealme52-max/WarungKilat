@@ -215,13 +215,13 @@ function drawRoom(ctx, world) {
   ctx.fillStyle = COLORS.wallBand;
   ctx.fillRect(0, 152, width, 44);
   ctx.fillStyle = '#3b2a1a';
-  rr(ctx, 470, 156, 340, 36, 8);
+  rr(ctx, 390, 156, 500, 36, 8);
   ctx.fill();
   ctx.fillStyle = '#ffe9b8';
-  ctx.font = '700 17px system-ui, sans-serif';
+  ctx.font = '700 16px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('MENU  •  NASI GORENG  •  MIE AYAM  •  ES TEH', 640, 175);
+  ctx.fillText('MENU • NASI GORENG • MIE AYAM • ES TEH', 640, 175);
   // Window with sun and frame, left wall.
   ctx.fillStyle = '#bfe3f2';
   rr(ctx, 60, 164, 150, 26, 6);
@@ -238,8 +238,44 @@ function drawRoom(ctx, world) {
   ctx.beginPath();
   ctx.arc(95, 177, 9, 0, Math.PI * 2);
   ctx.fill();
-  // Hanging lamps, kept clear of the menu board (x 470-810).
-  for (const lx of [300, 980]) {
+  // Wall clock + framed poster, right of the ticket row (tickets end x 932).
+  ctx.fillStyle = '#3b2a1a';
+  ctx.beginPath();
+  ctx.arc(1170, 108, 26, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fffdf4';
+  ctx.beginPath();
+  ctx.arc(1170, 108, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#3b2a1a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(1170, 108);
+  ctx.lineTo(1170, 92);
+  ctx.moveTo(1170, 108);
+  ctx.lineTo(1182, 112);
+  ctx.stroke();
+  ctx.fillStyle = '#3b2a1a';
+  ctx.beginPath();
+  ctx.arc(1170, 108, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#8a5a2b';
+  rr(ctx, 958, 72, 130, 72, 6);
+  ctx.fill();
+  ctx.fillStyle = '#fff3d6';
+  rr(ctx, 964, 78, 118, 60, 4);
+  ctx.fill();
+  ctx.fillStyle = '#d94f3d';
+  ctx.font = '700 12px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('WARUNG KILAT', 1023, 96);
+  ctx.fillStyle = '#2e7f7b';
+  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.fillText('SEJAK 1998', 1023, 116);
+  ctx.fillText('★ ★ ★ ★ ★', 1023, 130);
+  // Hanging lamps, kept clear of the menu board (x 390-890).
+  for (const lx of [250, 1030]) {
     ctx.strokeStyle = '#6e451f';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -266,6 +302,27 @@ function drawRoom(ctx, world) {
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.ellipse(640, 520, 225, 46, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Second rug, left-middle — the band above the main rug was bare tile.
+  ctx.fillStyle = '#b4503a';
+  ctx.beginPath();
+  ctx.ellipse(300, 440, 150, 42, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#e8b45a';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(300, 440, 132, 33, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Third rug, right-middle — the band above the right dining table was
+  // still bare tile. Flat like the other rugs: the chef walks over it.
+  ctx.fillStyle = '#b4503a';
+  ctx.beginPath();
+  ctx.ellipse(1060, 385, 110, 30, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#e8b45a';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(1060, 385, 94, 22, 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.fillStyle = '#a04a32';
   ctx.fillRect(40, 302, 1200, 12);
@@ -304,6 +361,28 @@ function drawRoom(ctx, world) {
     ctx.arc(cx, cy - 18, 12, Math.PI, 0);
     ctx.fill();
   }
+  // Second dining table, bottom-centre-left, with one customer.
+  ctx.fillStyle = '#6e451f';
+  ctx.beginPath();
+  ctx.ellipse(400, 545, 46, 15, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#8a5a2b';
+  ctx.fillRect(396, 545, 8, 34);
+  ctx.fillStyle = '#fdfbf6';
+  ctx.beginPath();
+  ctx.ellipse(400, 539, 38, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#7a4a9e';
+  rr(ctx, 318, 552, 28, 30, 9);
+  ctx.fill();
+  ctx.fillStyle = '#f2c184';
+  ctx.beginPath();
+  ctx.arc(332, 544, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2b1d12';
+  ctx.beginPath();
+  ctx.arc(332, 544, 11, Math.PI, 0);
+  ctx.fill();
   // (The potted plant used to sit here; the dining corner fills that role.)
 }
 
@@ -556,6 +635,10 @@ function drawChef(ctx, world) {
   const bob = chef.moving ? Math.sin(chef.walkPhase) * 3 : 0;
   const x = chef.x;
   const y = chef.y + bob * 0.3;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(1.18, 1.18);
+  ctx.translate(-x, -y);
   ctx.fillStyle = 'rgba(0,0,0,0.22)';
   ctx.beginPath();
   ctx.ellipse(x, chef.y + 32, 30, 8, 0, 0, Math.PI * 2);
@@ -599,6 +682,7 @@ function drawChef(ctx, world) {
       drawFood(ctx, world.carrying.ing, x, cy, 16, world.carrying.state);
     }
   }
+  ctx.restore();
 }
 
 // --- HUD, picker, overlays ------------------------------------------------------
