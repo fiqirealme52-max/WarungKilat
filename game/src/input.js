@@ -1,46 +1,34 @@
-// Warung Kilat — input mouse + keyboard. Klik memakai rect yang sama dengan
-// yang digambar render.js (dari WK_CONFIG), jadi tidak ada zona mati/nyasar.
+// Warung Kilat v2 — input: tombol DOM + keyboard (mapping sama dengan v1).
 (function () {
   'use strict';
 
-  var CFG = window.WK_CONFIG;
   var WORLD = window.WK_WORLD;
   var DATA = window.WK_DATA;
 
-  function inside(x, y, r) {
-    return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
-  }
-
-  function jarRect(i) {
-    var col = i % 2, row = (i / 2) | 0;
-    return {
-      x: CFG.JAR_X0 + col * (CFG.JAR_W + CFG.JAR_GAP),
-      y: CFG.JAR_Y0 + row * (CFG.JAR_H + CFG.JAR_GAP),
-      w: CFG.JAR_W, h: CFG.JAR_H,
-    };
-  }
-
-  function click(game, x, y) {
-    if (game.phase === 'title') { WORLD.startGame(game); return true; }
-    if (game.phase === 'over') return false;
-    if (inside(x, y, CFG.BATTER)) return WORLD.pourBatter(game);
-    if (inside(x, y, CFG.BUTTER)) return WORLD.addButter(game);
-    if (inside(x, y, CFG.FOLD_BTN)) return WORLD.fold(game);
-    if (inside(x, y, CFG.SERVE_BTN)) return WORLD.cutAndPlate(game);
-    if (inside(x, y, CFG.BIN)) return WORLD.discard(game);
-    if (inside(x, y, CFG.READY)) return WORLD.serve(game);
-    if (inside(x, y, CFG.BELL)) return WORLD.serve(game);
-    for (var i = 0; i < DATA.TOPPINGS.length; i++) {
-      if (inside(x, y, jarRect(i))) return WORLD.addTopping(game, DATA.TOPPINGS[i].id);
+  function bindButtons(game) {
+    function act(fn) {
+      return function () {
+        if (game.phase === 'title') { WORLD.startGame(game); return; }
+        var ok = fn();
+        if (window.WK_AUDIO) { if (ok) window.WK_AUDIO.click(); else window.WK_AUDIO.error(); }
+      };
     }
-    // klik wajan: kalau sudah terlipat, potong; kalau sedang topping, tidak apa-apa
-    var G = CFG.GRIDDLE;
-    var dx = (x - G.cx) / G.rx, dy = (y - G.cy) / G.ry;
-    if (dx * dx + dy * dy <= 1) {
-      if (game.griddle.stage === 'folded') return WORLD.cutAndPlate(game);
-      return true;
-    }
-    return false;
+    document.getElementById('btn-batter').addEventListener('click', act(function () { return WORLD.pourBatter(game); }));
+    document.getElementById('btn-butter').addEventListener('click', act(function () { return WORLD.addButter(game); }));
+    document.getElementById('btn-fold').addEventListener('click', act(function () { return WORLD.fold(game); }));
+    document.getElementById('btn-cut').addEventListener('click', act(function () { return WORLD.cutAndPlate(game); }));
+    document.getElementById('btn-bin').addEventListener('click', act(function () { return WORLD.discard(game); }));
+    document.getElementById('bell').addEventListener('click', act(function () { return WORLD.serve(game); }));
+    document.getElementById('ready').addEventListener('click', function (ev) {
+      if (ev.target.id === 'bell') return; // sudah ditangani tombol bel
+      act(function () { return WORLD.serve(game); })();
+    });
+    document.getElementById('title-overlay').addEventListener('click', function () {
+      if (game.phase === 'title') WORLD.startGame(game);
+    });
+    document.getElementById('stage').addEventListener('click', function () {
+      if (game.phase === 'title') WORLD.startGame(game);
+    });
   }
 
   function key(game, code) {
@@ -61,5 +49,5 @@
     return false;
   }
 
-  window.WK_INPUT = { click: click, key: key, inside: inside, jarRect: jarRect };
+  window.WK_INPUT = { bindButtons: bindButtons, key: key };
 })();
