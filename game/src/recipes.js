@@ -1,39 +1,53 @@
-// Warung Kilat — ingredients and the five original recipes.
-// Every ingredient is prepared exactly one way: chopped on the board,
-// cooked on a burner, or taken ready from the crate. A recipe is a
-// multiset of prepared ingredients; the plate matches a ticket when its
-// contents equal the recipe, in any order.
-export const INGREDIENTS = [
-  { id: 'nasi', name: 'Nasi', short: 'Nasi', color: '#f7f2e2', prep: 'cook', cookTime: 4.0, key: '1' },
-  { id: 'ayam', name: 'Ayam', short: 'Ayam', color: '#e8a04c', prep: 'cook', cookTime: 5.0, key: '2' },
-  { id: 'mie', name: 'Mie', short: 'Mie', color: '#f2c94c', prep: 'cook', cookTime: 3.5, key: '3' },
-  { id: 'telur', name: 'Telur', short: 'Telur', color: '#fff3d6', prep: 'cook', cookTime: 3.0, key: '4' },
-  { id: 'tahu', name: 'Tahu', short: 'Tahu', color: '#f7e8c8', prep: 'cook', cookTime: 3.5, key: '5' },
-  { id: 'sayur', name: 'Sayur', short: 'Sayur', color: '#58b368', prep: 'chop', chopTime: 1.6, key: '6' },
-  { id: 'cabai', name: 'Cabai', short: 'Cabai', color: '#e23b3b', prep: 'chop', chopTime: 1.6, key: '7' },
-  { id: 'teh', name: 'Teh', short: 'Teh', color: '#c98a2e', prep: 'cook', cookTime: 3.0, key: '8' },
-  { id: 'es', name: 'Es Batu', short: 'Es', color: '#9fd8ff', prep: 'none', cookTime: 0, key: '9' },
-];
+// Warung Kilat — data: topping, resep pesanan, dan pelanggan.
+// Semua nama + hidangan orisinal, hasil pikiran sendiri untuk gerobak ini.
+(function () {
+  'use strict';
 
-export const INGREDIENT_BY_ID = {};
-for (const ing of INGREDIENTS) INGREDIENT_BY_ID[ing.id] = ing;
+  // Enam topping, masing-masing satu warna + satu kunci keyboard.
+  var TOPPINGS = [
+    { id: 'cokelat', name: 'Cokelat', key: '3', color: '#5a3018', dot: '#7a4a28', price: 4000 },
+    { id: 'keju', name: 'Keju', key: '4', color: '#ffcf3d', dot: '#f2b705', price: 5000 },
+    { id: 'kacang', name: 'Kacang', key: '5', color: '#c98f4e', dot: '#a06a2c', price: 4000 },
+    { id: 'pisang', name: 'Pisang', key: '6', color: '#f7ead0', dot: '#d9b96a', price: 4000 },
+    { id: 'susu', name: 'Susu', key: '7', color: '#fff8ea', dot: '#e8dcc0', price: 3000 },
+    { id: 'wijen', name: 'Wijen', key: '8', color: '#e8dcc0', dot: '#b8a888', price: 3000 },
+  ];
 
-export const RECIPES = [
-  { id: 'nasgor', name: 'Nasi Goreng', components: ['nasi', 'telur', 'cabai'], reward: 120, color: '#e07840' },
-  { id: 'geprek', name: 'Ayam Geprek', components: ['ayam', 'cabai', 'nasi'], reward: 140, color: '#d94f3d' },
-  { id: 'mieayam', name: 'Mie Ayam', components: ['mie', 'ayam', 'sayur'], reward: 130, color: '#e8a83c' },
-  { id: 'gado', name: 'Gado-Gado', components: ['sayur', 'tahu', 'telur'], reward: 130, color: '#58b368' },
-  { id: 'esteh', name: 'Es Teh', components: ['teh', 'es'], reward: 80, color: '#c98a2e' },
-];
+  // Satu martabak = dua topping. Harga dasar 12000 + harga topping.
+  var RECIPES = [
+    { name: 'Cokelat Keju', toppings: ['cokelat', 'keju'] },
+    { name: 'Pisang Susu', toppings: ['pisang', 'susu'] },
+    { name: 'Kacang Wijen', toppings: ['kacang', 'wijen'] },
+    { name: 'Cokelat Pisang', toppings: ['cokelat', 'pisang'] },
+    { name: 'Keju Susu', toppings: ['keju', 'susu'] },
+    { name: 'Cokelat Kacang', toppings: ['cokelat', 'kacang'] },
+    { name: 'Keju Wijen', toppings: ['keju', 'wijen'] },
+    { name: 'Pisang Kacang', toppings: ['pisang', 'kacang'] },
+  ];
 
-export const RECIPE_BY_ID = {};
-for (const r of RECIPES) RECIPE_BY_ID[r.id] = r;
+  function toppingById(id) {
+    for (var i = 0; i < TOPPINGS.length; i++) if (TOPPINGS[i].id === id) return TOPPINGS[i];
+    return null;
+  }
 
-/** True when the plate's items are exactly the recipe's components. */
-export function plateMatchesRecipe(plateItems, recipe) {
-  if (plateItems.length !== recipe.components.length) return false;
-  const have = [...plateItems].sort();
-  const want = [...recipe.components].sort();
-  for (let i = 0; i < want.length; i += 1) if (have[i] !== want[i]) return false;
-  return true;
-}
+  function recipePrice(recipe) {
+    var p = 12000;
+    for (var i = 0; i < recipe.toppings.length; i++) p += toppingById(recipe.toppings[i]).price;
+    return p;
+  }
+
+  // Pelanggan: wajah digambar dari parameter ini (kulit, rambut, baju, aksesori).
+  var CUSTOMERS = [
+    { name: 'Bu Ratna', skin: '#e8b98a', hair: '#3a2a1a', hairStyle: 'bun', shirt: '#2e7d6b', item: 'anting' },
+    { name: 'Pak Dedi', skin: '#c98d5f', hair: '#1a1a1a', hairStyle: 'peci', shirt: '#8a2f23', item: 'peci' },
+    { name: 'Mbak Sari', skin: '#f0c39a', hair: '#241608', hairStyle: 'ponytail', shirt: '#c96a1e', item: 'pita' },
+    { name: 'Mas Budi', skin: '#d9a06a', hair: '#0e0e0e', hairStyle: 'flat', shirt: '#3d5a80', item: 'topi' },
+    { name: 'Nek Minah', skin: '#e0aa7a', hair: '#cfcfcf', hairStyle: 'sanggul', shirt: '#7a4a8a', item: 'kerudung' },
+    { name: 'Dek Rian', skin: '#eec39a', hair: '#2a1a0c', hairStyle: 'spiky', shirt: '#2a9d3f', item: 'headset' },
+  ];
+
+  window.WK_DATA = {
+    TOPPINGS: TOPPINGS, RECIPES: RECIPES, CUSTOMERS: CUSTOMERS,
+    toppingById: toppingById, recipePrice: recipePrice,
+  };
+})();
