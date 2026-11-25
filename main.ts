@@ -1,33 +1,36 @@
-// Warung Kilat — program penyerahan (Node 22, stdlib saja).
-// Menyalin game/ dan screenshots/ dari repo ke /output lalu menulis
-// /output/dossier.json dengan library make.fun yang divendor.
-// Di luar grader, MAKEFUN_OUTPUT_DIR menggantikan /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Warung Kilat — entrypoint penyerahan (Node 22, tanpa dependensi luar).
+// Menyalin folder game/ dan screenshots/ ke direktori keluaran, lalu
+// menulis dossier.json memakai pustaka make.fun yang ikut ter-vendor.
+// Grader menjalankan berkas ini; di luar grader, direktori keluaran
+// bisa diganti lewat MAKEFUN_OUTPUT_DIR:
+//   MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { buildDossier } from './vendor/makefun-game.ts';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
+import * as dossierLib from './vendor/makefun-game.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const root = url.fileURLToPath(new URL('.', import.meta.url));
+const dest = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const gameDir = path.join(root, 'game');
+const shotsDir = path.join(root, 'screenshots');
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+fs.mkdirSync(dest, { recursive: true });
+fs.cpSync(gameDir, path.join(dest, 'game'), { recursive: true });
+fs.mkdirSync(path.join(dest, 'screenshots'), { recursive: true });
+if (fs.existsSync(shotsDir)) {
+  fs.cpSync(shotsDir, path.join(dest, 'screenshots'), { recursive: true });
+}
 
-// Batas gate (reference/gate.json): hanya text_max_bytes yang membentuk byte;
-// sisanya menolak entri yang scorer akan tolak (lebih dari 4 screenshot atau
-// satu di atas 256 KiB; lebih dari 993 file di game/ atau 48 MiB, atau path
-// game/ di atas 1000 byte).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    game_max_files: 993,
-    game_max_bytes: 50331648,
-    game_path_max_bytes: 1000,
-  }),
-);
+// Batas gate (reference/gate.json): text_max_bytes satu-satunya yang
+// membentuk byte dossier; sisanya menolak entri yang scorer akan tolak
+// (screenshot lebih dari 4 atau di atas 256 KiB; game/ lebih dari
+// 993 file atau 48 MiB; atau path di game/ di atas 1000 byte).
+const dossier = dossierLib.buildDossier(dest, {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  game_max_files: 993,
+  game_max_bytes: 50331648,
+  game_path_max_bytes: 1000,
+});
+fs.writeFileSync(path.join(dest, 'dossier.json'), dossier);
